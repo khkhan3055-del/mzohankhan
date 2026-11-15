@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zohan’s Super Run</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#efe7ff;color:#272047;font:1rem system-ui}main{max-width:940px;margin:auto;padding:24px 16px 48px}a{color:inherit;font-weight:800}h1{font-size:clamp(2.5rem,8vw,5.5rem);margin:16px 0 0;letter-spacing:-.07em;line-height:1}canvas{display:block;width:100%;height:auto;background:#9fe3fb;border:6px solid white;border-radius:20px;box-shadow:0 5px #b49dde;touch-action:manipulation}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:18px}button{font:inherit;font-weight:800;border:0;border-radius:30px;background:#493084;color:white;padding:12px 22px;cursor:pointer}button:disabled{opacity:.5}button:focus-visible,a:focus-visible{outline:3px solid #864abd;outline-offset:3px}.cast{display:flex;flex-wrap:wrap;gap:8px;padding:0;list-style:none}.cast li{background:white;border-radius:99px;padding:6px 10px}
+</style>
+<main>
+<a href="games.html">← Back to arcade</a>
+<h1>Zohan’s Super Run</h1>
+<p>Run with the whole crew. Jump over crates and grab gold rings!</p>
+<canvas id="track" width="840" height="330" aria-label="Zohan and six friends running on a track"></canvas>
+<div class="controls"><button id="start">Start run</button><button id="jump" disabled>Jump ↑</button><strong id="score">Rings 0 · Distance 0 m</strong></div>
+<p id="status" role="status">Press Space, ↑, or tap the track to jump after starting.</p>
+<ul class="cast" aria-label="Running crew">
+<li>🦔 Sonic</li><li>🥊 Knuckles</li><li>🦊 Tails</li><li>❤️ Elmo</li><li>🐱 Tom</li><li>🐭 Jerry</li>
+</ul>
+</main>
+<script>
+const canvas = document.querySelector('#track');
+const ctx = canvas.getContext('2d');
+const start = document.querySelector('#start');
+const jump = document.querySelector('#jump');
+const score = document.querySelector('#score');
+const status = document.querySelector('#status');
+const friends = [['Sonic','🦔','#2476e8'],['Knuckles','🥊','#d23659'],['Tails','🦊','#a64e06'],['Elmo','❤️','#be2848'],['Tom','🐱','#4d5573'],['Jerry','🐭','#844837']];
+const ground = 270;
+const x = 150;
+let playing = false, last = 0, distance = 0, rings = 0, lift = 0, velocity = 0, items = [], next = 0;
+function box(color,x,y,w,h) { ctx.fillStyle=color; ctx.fillRect(x,y,w,h); }
+function label(value,x,y,size,color='#252047') {
+  ctx.fillStyle=color;
+  ctx.font='800 '+size+'px system-ui';
+  ctx.textAlign='center';
+  ctx.fillText(value,x,y);
+}
+function draw() {
+  box('#a6e7ff',0,0,840,330);
+  for (let i=0;i<5;i++) label('☁',i*210+60-distance*.08%210,73+(i%2)*26,64,'#fff');
+  box('#8cdea4',0,ground-30,840,90);
+  box('#6453a1',0,ground,840,60);
+  for (let i=0;i<13;i++) box('#cdbaff',i*75-distance*2%75,293,34,4);
+  friends.forEach(([name,icon,color],i)=>{
+    const fx=70+i*132, fy=176+Math.sin(distance*.45+i)*5;
+    label('●',fx,fy,53,color);
+    label(icon,fx,fy-4,27);
+    label(name,fx,fy+20,15,color);
+  });
+  label('😎',x,ground-lift-11,45);
+  label('Zohan',x,ground-lift-57,16);
+  for(const item of items) {
+    if(item.type==='ring') {
+      ctx.strokeStyle='#ac7100';ctx.lineWidth=9;ctx.beginPath();ctx.arc(item.x,ground-74,12,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle='#ffde4e';ctx.lineWidth=5;ctx.stroke();
+    } else {
+      box('#9b4e2d',item.x-15,ground-32,30,32);
+      box('#fdad70',item.x-12,ground-29,24,26);
+      label('×',item.x,ground-7,24,'#9b4e2d');
+    }
+  }
+}
+function update(now) {
+  if(!playing)return;
+  const dt=Math.min((now-last)/1000,.033);last=now;
+  distance+=dt*14;
+  velocity-=dt*950;
+  lift=Math.max(0,lift+velocity*dt);
+  if(lift===0) velocity=0;
+  const speed=245+Math.min(180,distance*.65);
+  if(distance>=next) {
+    items.push({x:860,type:Math.random()<.35?'ring':'crate'});
+    next=distance+20+Math.random()*10;
+  }
+  for(const item of items) {
+    item.x-=speed*dt;
+    if(Math.abs(item.x-x)>25 || item.collected) continue;
+    if(item.type==='ring' && lift>20 && lift<100){rings++;item.collected=true;}
+    if(item.type==='crate' && lift<29){playing=false;break;}
+  }
+  items=items.filter(item=>item.x>-20 && !item.collected);
+  score.textContent='Rings '+rings+' · Distance '+Math.floor(distance)+' m';
+  draw();
+  if(playing) requestAnimationFrame(update);
+  else {start.disabled=false;jump.disabled=true;start.textContent='Run again';status.textContent='You ran '+Math.floor(distance)+' m and collected '+rings+' rings!';}
+}
+function leap(){if(playing && lift===0 && velocity===0)velocity=420;}
+start.onclick=()=>{
+  distance=rings=lift=velocity=0;items=[];next=0;
+  playing=true;last=performance.now();start.disabled=true;jump.disabled=false;
+  status.textContent='The crew is running!';
+  requestAnimationFrame(update);
+};
+jump.onclick=leap;
+canvas.addEventListener('pointerdown',leap);
+document.addEventListener('keydown',event=>{
+  if(!playing || event.repeat || !['Space','ArrowUp'].includes(event.code))return;
+  if(event.code==='Space' && event.target===jump)return;
+  event.preventDefault();leap();
+});
+draw();
+</script>
+</html>
