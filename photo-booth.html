@@ -3,6 +3,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zohan’s Photo Booth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&amp;family=DM+Sans:wght@400;600;700;800&amp;display=swap">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#e7f5ff;color:#252047;font:1rem system-ui,sans-serif}main{width:min(780px,calc(100% - 32px));margin:auto;padding:24px 0 50px}a{color:inherit;font-weight:800}h1{font-size:clamp(2.8rem,8vw,5rem);line-height:1;letter-spacing:-.07em;margin:25px 0 10px}.frame{position:relative;overflow:hidden;aspect-ratio:4/3;margin:22px 0;background:radial-gradient(circle at 25% 20%,#fff5a2,#f4bdec 60%,#b5a5f7);border:10px solid white;border-radius:30px;box-shadow:0 8px 0 #b9d6ef}video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}video{transform:scaleX(-1)}.mascot{position:absolute;right:0;bottom:7%;height:76%;max-width:52%;object-fit:contain}.label{position:absolute;bottom:0;left:0;right:0;padding:9px;text-align:center;background:#3e2674;color:white;font-weight:900}.actions{display:flex;gap:10px;flex-wrap:wrap}button,.download{border:0;padding:.8rem 1rem;border-radius:99px;background:#453078;color:white;font:inherit;font-weight:800;cursor:pointer;text-decoration:none}button:disabled{opacity:.45;cursor:default}[hidden]{display:none!important}:focus-visible{outline:3px solid #9861bf;outline-offset:3px}
 
@@ -41,6 +44,21 @@ body{background:radial-gradient(ellipse at 72% 0,#224f91 0,transparent 52%),var(
 .site-nav a:hover,.site-nav [aria-current=page]{background:#254b86}
 .site-foot{background:#101f43;border-top-color:#35568b}
 .frame{box-shadow:0 7px 0 #315b9d}.booth-controls{border-color:#5074a9}
+
+:root{--display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;--text:"DM Sans",system-ui,sans-serif;--bright:#80d8ff;--amber:#ffd36c}
+body{font-family:var(--text);background:radial-gradient(ellipse at 85% 0,#1c4d8f 0,transparent 48%),#0a1630}
+h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:.005em;line-height:.98}
+h1{font-size:clamp(3rem,8vw,6rem)}
+h2{font-size:clamp(2.1rem,5vw,3.5rem)}
+.site-logo{font:800 1.52rem/1 var(--display);letter-spacing:.025em}
+.site-logo span{border-radius:8px;background:var(--bright);box-shadow:inset 0 -3px #3e9ace}
+.site-head{background:#0e2144}
+.site-nav a{border-radius:7px;font-weight:700}
+.site-nav a:hover,.site-nav [aria-current=page]{background:#254d86;color:#e9f8ff}
+.action-link{border-radius:9px;background:var(--amber);box-shadow:0 3px 0 #b07e24;letter-spacing:.005em}
+.action-link:hover{background:#ffe89e}
+:focus-visible{outline-color:var(--bright)}
+.frame{border-radius:18px}.booth-controls{border-radius:14px}.booth-controls h2{font-size:2rem}.actions button,.download{border-radius:9px}
 </style>
 <body>
 <header class="site-head"><div class="site-inner"><a class="site-logo" href="index.html"><span aria-hidden="true">✦</span>Zohan’s World</a><nav class="site-nav" aria-label="Main"><a href="index.html">Home</a><a href="games.html">Arcade</a><a href="photo-booth.html" aria-current="page">Photo Booth</a><a href="index.html#album">Album</a><a href="characters.html">Characters</a></nav></div></header>
