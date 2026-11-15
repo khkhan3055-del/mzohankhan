@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zohan’s Arcade</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#fff9ef;color:#29203b;font:1rem system-ui}main{max-width:760px;margin:auto;padding:24px 18px 48px}a{color:#533887}h1{font-size:clamp(2.6rem,8vw,5rem);letter-spacing:-.07em;margin:24px 0 16px}nav,.controls,#choices{display:flex;gap:.6rem;flex-wrap:wrap}button{font:inherit;font-weight:700;border:0;border-radius:12px;background:#eae0fb;color:inherit;padding:.75rem 1rem;cursor:pointer}button[aria-pressed=true],#start{background:#523584;color:white}button:focus-visible,a:focus-visible{outline:3px solid #8452bc;outline-offset:3px}section{margin-top:20px;padding:clamp(16px,4vw,28px);background:white;border:1px solid #e8ded2;border-radius:22px}h2{margin:0}canvas{display:block;width:min(100%,320px);height:auto;margin:15px 0;background:#e9e2f6;border-radius:12px}#question{font-size:1.6rem;font-weight:800}#status{min-height:1.5em}.controls{margin-top:12px}.controls button{min-width:52px}[hidden]{display:none!important}
+</style>
+<main>
+<a href="index.html">← Zohan’s World</a>
+<h1>Zohan’s Arcade</h1>
+<nav aria-label="Choose a game">
+<button data-game="snake">Snake</button><button data-game="race">Car Racing</button><button data-game="math">Quick Math</button><button data-game="word">Word Builder</button><button data-game="pattern">Pattern Lab</button>
+</nav>
+<section aria-labelledby="title">
+<h2 id="title"></h2><p id="help"></p>
+<canvas width="320" height="320" aria-label="Game board"></canvas>
+<div class="controls" id="moves">
+<button data-direction="left" aria-label="Move left">←</button><button data-direction="up" aria-label="Move up">↑</button><button data-direction="down" aria-label="Move down">↓</button><button data-direction="right" aria-label="Move right">→</button>
+</div>
+<p id="question"></p><div id="choices"></div>
+<p id="status" role="status"></p><button id="start">Start</button>
+</section>
+</main>
+<script>
+const get = id => document.getElementById(id);
+const board = document.querySelector('canvas');
+const ctx = board.getContext('2d');
+const modes = {
+ snake: ['Snake', 'Use the arrow keys or buttons to collect the dots. Avoid the walls and your tail.'],
+ race: ['Car Racing', 'Move left and right to dodge cars. Each car you pass earns a point.'],
+ math: ['Quick Math', 'Choose the correct sum.'],
+ word: ['Word Builder', 'Choose the missing letter.'],
+ pattern: ['Pattern Lab', 'Choose what comes next.']
+};
+const random = n => Math.floor(Math.random() * n);
+let game, timer, score, body, food, direction, pending, lane, cars, ticks;
+function stop() { clearInterval(timer); timer = undefined; }
+function pick(name) {
+ stop(); game = name; score = 0;
+ const arcade = name === 'snake' || name === 'race';
+ for (const button of document.querySelectorAll('[data-game]')) button.setAttribute('aria-pressed', button.dataset.game === name);
+ get('title').textContent = modes[name][0]; get('help').textContent = modes[name][1];
+ board.hidden = get('moves').hidden = !arcade;
+ for (const button of get('moves').children) button.hidden = name === 'race' && ['up','down'].includes(button.dataset.direction);
+ get('question').textContent = ''; get('choices').replaceChildren();
+ get('status').textContent = ''; get('start').textContent = 'Start';
+ if (arcade) { reset(); draw(); }
+}
+function reset() {
+ body = [[7,8],[6,8],[5,8]]; direction = pending = [1,0]; food = [11,8];
+ lane = 1; cars = []; ticks = 0;
+}
+function rect(color,x,y,w,h) { ctx.fillStyle=color; ctx.fillRect(x,y,w,h); }
+function draw() {
+ rect('#eee8fa',0,0,320,320);
+ if (game === 'snake') {
+  for (const [x,y] of body) rect('#39735e',x*20+1,y*20+1,18,18);
+  ctx.fillStyle='#b92f62'; ctx.beginPath(); ctx.arc(food[0]*20+10,food[1]*20+10,7,0,Math.PI*2); ctx.fill();
+ } else {
+  rect('#342f4b',40,0,240,320);
+  for (let y=-24;y<320;y+=40) for (const x of [119,199]) rect('#c7bddb',x,y+(ticks%10)*4,2,18);
+  for (const car of cars) rect('#ff9ba6',56+car.lane*80,car.y,48,38);
+  rect('#ffdb73',56+lane*80,270,48,38);
+  rect('#705486',64+lane*80,277,32,11);
+ }
+}
+function finish(message) { stop(); get('status').textContent = message + ' Score ' + score + '.'; get('start').textContent = 'Play again'; }
+function step() {
+ if (game === 'snake') {
+  direction = pending;
+  const x = body[0][0]+direction[0], y = body[0][1]+direction[1];
+  const eat = x===food[0] && y===food[1];
+  if (x<0 || x>=16 || y<0 || y>=16 || (eat ? body : body.slice(0,-1)).some(([a,b])=>a===x && b===y)) return finish('Game over.');
+  body.unshift([x,y]);
+  if (eat) {
+   score++;
+   const open = [];
+   for (let i=0;i<256;i++) if (!body.some(([a,b])=>a+16*b===i)) open.push([i%16,Math.floor(i/16)]);
+   if (!open.length) { draw(); return finish('You filled the board!'); }
+   food = open[random(open.length)];
+  } else body.pop();
+ } else {
+  ticks++;
+  if (ticks%29===1) cars.push({lane:random(3),y:-40});
+  for (const car of cars) car.y+=4;
+  draw();
+  if (cars.some(car=>car.lane===lane && car.y+38>270 && car.y<308)) return finish('Crash!');
+  const remaining=cars.filter(car=>car.y<320); score+=cars.length-remaining.length; cars=remaining;
+ }
+ draw(); get('status').textContent = 'Score ' + score;
+}
+const words = [['A pet that meows · C_T','A','O','E','I'],['An animal that swims · F_SH','I','A','E','U'],['It lights up the sky by day · S_N','U','E','I','O'],['It lights up the night sky · M__N','OO','EE','AA','II'],['It has branches and leaves · TR_E','E','O','A','I']];
+let lastWord = -1;
+function quiz() {
+ let prompt, answer, options;
+ if (game==='math') {
+  const a=random(10)+1,b=random(10)+1; prompt=a+' + '+b+' = ?'; answer=a+b; options=[answer,answer-1,answer+1,answer+2];
+ } else if (game==='word') {
+  lastWord=(lastWord+1+random(words.length-1))%words.length;
+  [prompt,answer,...options]=words[lastWord]; options.unshift(answer);
+ } else {
+  const a=random(8)+1,b=random(4)+2; prompt=[a,a+b,a+2*b,'?'].join(' · '); answer=a+3*b; options=[answer,answer-1,answer+1,answer+b];
+ }
+ for(let i=options.length-1;i>0;i--){const j=random(i+1);[options[i],options[j]]=[options[j],options[i]];}
+ get('question').textContent=prompt; get('choices').replaceChildren();
+ for(const option of options){
+  const button=document.createElement('button'); button.textContent=option;
+  button.onclick=()=>{
+   if(option!==answer){get('status').textContent='Try again! Score '+score+'.';return;}
+   score++; get('status').textContent='Correct! Score '+score+'.'; quiz(); get('choices').firstChild.focus();
+  };
+  get('choices').append(button);
+ }
+}
+function steer(move) {
+ if (!timer) return;
+ if (game==='race') {
+  if(move==='left') lane=Math.max(0,lane-1);
+  if(move==='right') lane=Math.min(2,lane+1);
+  draw(); return;
+ }
+ const next={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]}[move];
+ if (next[0]+direction[0]!==0 || next[1]+direction[1]!==0) pending=next;
+}
+get('start').onclick=()=>{
+ stop(); score=0; get('status').textContent='Score 0'; get('start').textContent='Restart';
+ if (board.hidden) {quiz(); get('choices').firstChild.focus(); return;}
+ reset(); draw(); timer=setInterval(step,game==='snake'?145:25);
+};
+document.querySelectorAll('[data-game]').forEach(button=>button.onclick=()=>pick(button.dataset.game));
+document.querySelectorAll('[data-direction]').forEach(button=>button.onclick=()=>steer(button.dataset.direction));
+document.addEventListener('keydown',event=>{
+ const move=event.key.match(/^Arrow(Left|Right|Up|Down)$/)?.[1]?.toLowerCase();
+ if (timer && move) {event.preventDefault(); steer(move);}
+});
+pick('snake');
+</script>
+</html>
