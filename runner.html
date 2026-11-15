@@ -32,9 +32,35 @@ dialog::backdrop{background:#100b22dd}.dialog-head{display:flex;justify-content:
 video{display:block;width:100%;aspect-ratio:1;object-fit:cover;transform:scaleX(-1);border-radius:16px}
 [hidden]{display:none!important}.camera-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.upload{display:grid;gap:6px}.upload input{max-width:100%}
 .hud{background:#332650}.controls{background:#261d3e}.controls button{min-height:44px}
+
+:root{color-scheme:dark;--night:#151228;--panel:#221b37;--ink:#fff8ec;--muted:#e0d4ee;--gold:#ffce6a;--lime:#d8f7a1;--line:#756595}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 72% 0,#392751 0,transparent 45%),var(--night);color:var(--ink);font:1rem/1.5 "Nunito",system-ui,sans-serif}
+.site-head{background:#19142be8;border:0;border-bottom:1px solid #57476c}
+.site-head .site-inner{width:min(1200px,calc(100% - 36px));margin:auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 0}
+.site-logo{display:inline-flex;align-items:center;gap:9px;color:var(--ink);text-decoration:none;font-weight:900}
+.site-logo span{display:grid;place-items:center;background:var(--gold);color:#26203b;border-radius:12px;width:36px;height:36px;font-size:21px}
+.site-nav{display:flex;flex-wrap:wrap;gap:4px;font-size:.92rem}
+.site-nav a{border-radius:10px;color:#eee4ff;text-decoration:none;padding:7px 10px;font-weight:800}
+.site-nav a:hover,.site-nav [aria-current=page]{background:#4b3965;color:white}
+h1,h2{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:950;letter-spacing:-.06em;text-wrap:balance}
+h1{font-size:clamp(2.7rem,7vw,5.4rem);line-height:1;margin-block:0 14px}
+.site-foot{color:var(--muted);background:#171329;border-top:1px solid #49385e;padding:22px;text-align:center}
+:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+.action-link{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#24152e;font-weight:900;padding:12px 17px;border-radius:12px;text-decoration:none}
+.action-link:hover{background:#ffe3a2}
+@media(max-width:420px){.site-nav a{padding:6px 7px}.site-nav{font-size:.85rem}}
+
+main{width:min(1200px,calc(100% - 36px));padding-top:34px}
+.game-back{display:inline-block;margin-bottom:12px;color:#decdf2}
+.garage-bar,.race{border-color:#74618e;background:var(--panel)}
+#avatar-button{background:var(--lime)}
+#status{color:var(--muted)}
 </style>
+<body>
+<header class="site-head"><div class="site-inner"><a class="site-logo" href="index.html"><span aria-hidden="true">✦</span>Zohan’s World</a><nav class="site-nav" aria-label="Main"><a href="index.html">Home</a><a href="games.html">Arcade</a><a href="photo-booth.html">Photo Booth</a><a href="index.html#album">Album</a></nav></div></header>
 <main>
-<a href="games.html">← Back to arcade</a>
+<a class="game-back" href="games.html">← Games Arcade</a>
 <h1>Zohan’s <em>Super Run</em></h1>
 <p class="intro">Race with Zohan and Zavi, and bring your own photo runner along. Jump over crates and grab gold rings!</p>
 <div class="garage-bar"><label for="runner">Choose your runner</label><select id="runner"><option>Zohan</option><option>Zavi</option><option value="You" disabled>You</option></select><button id="avatar-button">Create photo runner</button></div>
@@ -55,6 +81,7 @@ video{display:block;width:100%;aspect-ratio:1;object-fit:cover;transform:scaleX(
 <label class="upload">Or choose a photo <input id="avatar-upload" type="file" accept="image/*"></label>
 </dialog>
 </main>
+<footer class="site-foot"><a class="site-logo" href="index.html"><span aria-hidden="true">✦</span>Zohan’s World</a></footer>
 <script>
 const canvas = document.querySelector('#track');
 const ctx = canvas.getContext('2d');
@@ -530,4 +557,5 @@ canyon.onload = zavi.onload = zohan.onload = draw;
 choice.onchange = draw;
 draw();
 </script>
+</body>
 </html>
