@@ -3,6 +3,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zohan’s Super Run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&amp;family=DM+Sans:wght@400;600;700;800&amp;display=swap">
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(ellipse at 75% 0,#4c347e,transparent 50%),#17132e;color:#fff7e8;font:1rem system-ui,sans-serif}
@@ -65,6 +68,21 @@ body{background:radial-gradient(ellipse at 72% 0,#224f91 0,transparent 52%),var(
 .site-nav a:hover,.site-nav [aria-current=page]{background:#254b86}
 .site-foot{background:#101f43;border-top-color:#35568b}
 .hud,.controls{background:#183661}.garage-bar,.race{border-color:#5074a9}.cast li{background:#173261;border-color:#5074a9}
+
+:root{--display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;--text:"DM Sans",system-ui,sans-serif;--bright:#80d8ff;--amber:#ffd36c}
+body{font-family:var(--text);background:radial-gradient(ellipse at 85% 0,#1c4d8f 0,transparent 48%),#0a1630}
+h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:.005em;line-height:.98}
+h1{font-size:clamp(3rem,8vw,6rem)}
+h2{font-size:clamp(2.1rem,5vw,3.5rem)}
+.site-logo{font:800 1.52rem/1 var(--display);letter-spacing:.025em}
+.site-logo span{border-radius:8px;background:var(--bright);box-shadow:inset 0 -3px #3e9ace}
+.site-head{background:#0e2144}
+.site-nav a{border-radius:7px;font-weight:700}
+.site-nav a:hover,.site-nav [aria-current=page]{background:#254d86;color:#e9f8ff}
+.action-link{border-radius:9px;background:var(--amber);box-shadow:0 3px 0 #b07e24;letter-spacing:.005em}
+.action-link:hover{background:#ffe89e}
+:focus-visible{outline-color:var(--bright)}
+.race{border-radius:16px}.garage-bar{border-radius:12px}.hud>strong:first-child{font:800 1.4rem/1 var(--display)}.controls button,.garage-bar button,.garage-bar select{border-radius:8px}h1 em{color:var(--bright)}
 </style>
 <body>
 <header class="site-head"><div class="site-inner"><a class="site-logo" href="index.html"><span aria-hidden="true">✦</span>Zohan’s World</a><nav class="site-nav" aria-label="Main"><a href="index.html">Home</a><a href="games.html">Arcade</a><a href="photo-booth.html">Photo Booth</a><a href="index.html#album">Album</a><a href="characters.html">Characters</a></nav></div></header>
