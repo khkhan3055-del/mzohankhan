@@ -25,20 +25,35 @@ button:disabled,select:disabled{opacity:.55;cursor:default}
 .cast{display:flex;flex-wrap:wrap;gap:8px;padding:0;list-style:none;margin-top:18px}
 .cast li{border:1px solid #6e5a97;background:#2b2146;border-radius:99px;padding:5px 10px;font-size:.85rem}
 @media(max-width:520px){.controls button{flex:1}.hud{font-size:.9rem}}
+.garage-bar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:14px 16px;margin-bottom:14px;border:1px solid #7767a5;border-radius:18px;background:#291e46}
+.garage-bar label{font-weight:800;margin-right:auto}.garage-bar button{background:#ffcf6c}
+dialog{width:min(480px,calc(100% - 28px));border:1px solid #8976b6;border-radius:24px;background:#251b40;color:#fff7e8;padding:20px}
+dialog::backdrop{background:#100b22dd}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.dialog-head h2{margin:0}.avatar-preview{position:relative;width:min(100%,300px);margin:14px auto}.avatar-preview:has(video[hidden]){display:none}.avatar-preview::after{content:"";position:absolute;inset:8%;border:3px solid #ffdc8b;border-radius:50%;pointer-events:none}
+video{display:block;width:100%;aspect-ratio:1;object-fit:cover;transform:scaleX(-1);border-radius:16px}
+[hidden]{display:none!important}.camera-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.upload{display:grid;gap:6px}.upload input{max-width:100%}
+.hud{background:#332650}.controls{background:#261d3e}.controls button{min-height:44px}
 </style>
 <main>
 <a href="games.html">← Back to arcade</a>
 <h1>Zohan’s <em>Super Run</em></h1>
-<p class="intro">Run as Zohan or his little brother Zavi. Jump over crates and grab gold rings!</p>
+<p class="intro">Race with Zohan and Zavi, and bring your own photo runner along. Jump over crates and grab gold rings!</p>
+<div class="garage-bar"><label for="runner">Choose your runner</label><select id="runner"><option>Zohan</option><option>Zavi</option><option value="You" disabled>You</option></select><button id="avatar-button">Create photo runner</button></div>
 <section class="race" aria-label="Race track">
 <div class="hud"><strong>Sunset Circuit</strong><strong id="score">Rings 0 · Distance 0 m</strong><span id="best">Best 0 m</span></div>
 <canvas id="track" width="840" height="330" aria-label="Zohan, Zavi, and ten friends running on a track"></canvas>
-<div class="controls"><label for="runner">Choose your runner</label><select id="runner"><option>Zohan</option><option>Zavi</option></select><button id="start">Start run</button><button id="jump" disabled>Jump ↑</button><button id="pause" disabled>Pause</button><button id="music" aria-pressed="true">Music on</button></div>
+<div class="controls"><button id="start">Start run</button><button id="jump" disabled>Jump ↑</button><button id="pause" disabled>Pause</button><button id="music" aria-pressed="true">Music on</button></div>
 <p id="status" role="status">Press Space, ↑, or tap the track to jump after starting.</p>
 </section>
 <ul class="cast" aria-label="Running crew">
 <li>Zohan</li><li>Zavi</li><li>Sonic</li><li>Knuckles</li><li>Tails</li><li>Elmo</li><li>Tom</li><li>Jerry</li><li>Amy Rose</li><li>Shadow</li><li>Cream</li><li>Big the Cat</li>
 </ul>
+<dialog id="garage" aria-labelledby="garage-title">
+<div class="dialog-head"><h2 id="garage-title">Your photo runner</h2><form method="dialog"><button aria-label="Close photo runner">Close</button></form></div>
+<p id="avatar-status" role="status"></p>
+<div class="avatar-preview"><video id="avatar-video" autoplay muted playsinline hidden></video></div>
+<div class="camera-actions"><button id="avatar-camera">Open camera</button><button id="avatar-snap" hidden>Take photo</button></div>
+<label class="upload">Or choose a photo <input id="avatar-upload" type="file" accept="image/*"></label>
+</dialog>
 </main>
 <script>
 const canvas = document.querySelector('#track');
@@ -140,6 +155,101 @@ musicButton.onclick = () => {
   else if (playing) void startMusic();
 };
 window.addEventListener('pagehide', stopMusic);
+
+const garage = document.querySelector('#garage');
+const avatarButton = document.querySelector('#avatar-button');
+const cameraButton = document.querySelector('#avatar-camera');
+const video = document.querySelector('#avatar-video');
+const snap = document.querySelector('#avatar-snap');
+const upload = document.querySelector('#avatar-upload');
+const avatarStatus = document.querySelector('#avatar-status');
+let avatar, cameraStream, cameraRequest = 0;
+
+function closeAvatarCamera() {
+  cameraRequest++;
+  cameraStream?.getTracks().forEach(track => track.stop());
+  cameraStream = undefined;
+  video.srcObject = null;
+  video.hidden = snap.hidden = true;
+  cameraButton.disabled = false;
+}
+
+function usePortrait(source, width, height, mirror) {
+  const portrait = document.createElement('canvas');
+  portrait.width = portrait.height = 192;
+  const painter = portrait.getContext('2d');
+  const crop = Math.min(width, height);
+  if (mirror) {
+    painter.translate(192, 0);
+    painter.scale(-1, 1);
+  }
+  painter.drawImage(source, (width-crop)/2, (height-crop)/2, crop, crop, 0, 0, 192, 192);
+  avatar = portrait;
+  choice.querySelector('[value="You"]').disabled = false;
+  choice.value = 'You';
+  closeAvatarCamera();
+  garage.close();
+  avatarButton.textContent = 'Change photo';
+  status.textContent = 'Your runner joined Zohan and Zavi. Start the race!';
+  draw();
+}
+
+avatarButton.onclick = () => {
+  avatarStatus.textContent = 'Center your face in the frame. Your photo stays on this device.';
+  garage.showModal();
+};
+garage.addEventListener('close', closeAvatarCamera);
+window.addEventListener('pagehide', closeAvatarCamera);
+
+cameraButton.onclick = async () => {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    avatarStatus.textContent = 'Camera access needs HTTPS or localhost. You can also choose a photo below.';
+    return;
+  }
+  const request = ++cameraRequest;
+  cameraButton.disabled = true;
+  avatarStatus.textContent = 'Waiting for camera permission…';
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+    if (request !== cameraRequest || !garage.open) {
+      stream.getTracks().forEach(track => track.stop());
+      return;
+    }
+    cameraStream = stream;
+    video.srcObject = stream;
+    await video.play();
+    if (request !== cameraRequest || !garage.open) return;
+    video.hidden = snap.hidden = false;
+    avatarStatus.textContent = 'Center your face in the circle, then take the photo.';
+  } catch {
+    if (request !== cameraRequest) return;
+    closeAvatarCamera();
+    avatarStatus.textContent = 'The camera is unavailable. Check browser permission or choose a photo below.';
+  }
+};
+
+snap.onclick = () => {
+  if (video.videoWidth && video.videoHeight) usePortrait(video,video.videoWidth,video.videoHeight,true);
+};
+
+upload.onchange = async () => {
+  const file = upload.files[0];
+  upload.value = '';
+  if (!file) return;
+  closeAvatarCamera();
+  const request = cameraRequest;
+  const url = URL.createObjectURL(file);
+  try {
+    const photo = new Image();
+    photo.src = url;
+    await photo.decode();
+    if (garage.open && request === cameraRequest) usePortrait(photo,photo.naturalWidth,photo.naturalHeight,false);
+  } catch {
+    if (garage.open && request === cameraRequest) avatarStatus.textContent = 'That image could not be opened. Try a JPEG or PNG.';
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
 
 function box(color,x,y,w,h) { ctx.fillStyle=color; ctx.fillRect(x,y,w,h); }
 function label(value,x,y,size,color='#252047') {
@@ -277,9 +387,34 @@ function draw() {
     }
     label(name,laneX,ground-jumpHeight-height-6,16);
   }
-  const player = choice.value;
-  brother(player === 'Zavi' ? 'Zohan' : 'Zavi', x-85+Math.sin(distance*.085)*11, lift*.65, stride+.65);
-  brother(player,x,lift,stride);
+  function photoRunner(laneX, jumpHeight, phase) {
+    const base = ground - jumpHeight - Math.abs(Math.sin(phase))*5;
+    const step = Math.sin(phase)*10;
+    oval(laneX-step,base-8,8,4,'#ffd57c');
+    oval(laneX+step+5,base-5,8,4,'#ffd57c');
+    oval(laneX,base-23,15,16,'#5841a4');
+    oval(laneX-13,base-19,6,4,'#addfe5');
+    oval(laneX+14,base-24,6,4,'#addfe5');
+    oval(laneX,base-49,22,22,'#ffdb80');
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(laneX,base-49,19,0,Math.PI*2);
+    ctx.clip();
+    ctx.drawImage(avatar,laneX-19,base-68,38,38);
+    ctx.restore();
+    label('You',laneX,base-75,16,'#fff6e4');
+  }
+  const runners = [
+    ['Zohan', brother],
+    ['Zavi', brother]
+  ];
+  if (avatar) runners.push(['You', (_, laneX, jumpHeight, phase) => photoRunner(laneX,jumpHeight,phase)]);
+  const active = runners.find(([name]) => name === choice.value) || runners[0];
+  runners.filter(runner => runner !== active).forEach(([name, paint], i) => {
+    const laneX = x + (i === 0 ? -85 : 75) + Math.sin(distance*.085+i)*8;
+    paint(name,laneX,lift*.65,stride+.65+i);
+  });
+  active[1](active[0],x,lift,stride);
   for(const item of items) {
     if(item.type==='ring') {
       ctx.strokeStyle='#ac7100';ctx.lineWidth=9;ctx.beginPath();ctx.arc(item.x,ground-74,12,0,Math.PI*2);ctx.stroke();
@@ -335,7 +470,7 @@ function update(now) {
   else {
     stopMusic();
     start.disabled=false;
-    choice.disabled=false;
+    choice.disabled=avatarButton.disabled=false;
     jump.disabled=true;
     pause.disabled=true;
     start.textContent='Run again';
@@ -377,7 +512,7 @@ document.addEventListener('visibilitychange',()=>{
 start.onclick=()=>{
   distance=rings=lift=velocity=queuedJump=0;paused=false;pause.disabled=false;pause.textContent='Pause';items=[];next=0;
   crew.forEach((runner,i)=>Object.assign(runner,{x:startingPosition(i),speed:0,target:0,change:0,phase:i}));
-  playing=true;last=performance.now();start.disabled=true;choice.disabled=true;jump.disabled=false;
+  playing=true;last=performance.now();start.disabled=true;choice.disabled=avatarButton.disabled=true;jump.disabled=false;
   score.textContent='Rings 0 · Distance 0 m';
   status.textContent='Space, ↑, or tap to jump.';
   void startMusic();
