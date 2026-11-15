@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Zohan’s Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&amp;family=DM+Sans:wght@400;600;700;800&amp;display=swap">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#fff9ef;color:#29203b;font:1rem system-ui}main{max-width:760px;margin:auto;padding:24px 18px 48px}a{color:#533887}h1{font-size:clamp(2.6rem,8vw,5rem);letter-spacing:-.07em;margin:24px 0 16px}nav,.controls,#choices{display:flex;gap:.6rem;flex-wrap:wrap}button{font:inherit;font-weight:700;border:0;border-radius:12px;background:#eae0fb;color:inherit;padding:.75rem 1rem;cursor:pointer}button[aria-pressed=true],#start{background:#523584;color:white}button:focus-visible,a:focus-visible{outline:3px solid #8452bc;outline-offset:3px}section{margin-top:20px;padding:clamp(16px,4vw,28px);background:white;border:1px solid #e8ded2;border-radius:22px}h2{margin:0}canvas{display:block;width:min(100%,320px);height:auto;margin:15px 0;background:#e9e2f6;border-radius:12px}#question{font-size:1.6rem;font-weight:800}#status{min-height:1.5em}.controls{margin-top:12px}.controls button{min-width:52px}[hidden]{display:none!important}
 
@@ -37,6 +40,21 @@ body{background:radial-gradient(ellipse at 72% 0,#224f91 0,transparent 52%),var(
 .site-nav a:hover,.site-nav [aria-current=page]{background:#254b86}
 .site-foot{background:#101f43;border-top-color:#35568b}
 .game-tabs button{background:#23477c}.game-tabs button[aria-pressed=true]{background:#a4dcff;color:#13264e}
+
+:root{--display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;--text:"DM Sans",system-ui,sans-serif;--bright:#80d8ff;--amber:#ffd36c}
+body{font-family:var(--text);background:radial-gradient(ellipse at 85% 0,#1c4d8f 0,transparent 48%),#0a1630}
+h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:.005em;line-height:.98}
+h1{font-size:clamp(3rem,8vw,6rem)}
+h2{font-size:clamp(2.1rem,5vw,3.5rem)}
+.site-logo{font:800 1.52rem/1 var(--display);letter-spacing:.025em}
+.site-logo span{border-radius:8px;background:var(--bright);box-shadow:inset 0 -3px #3e9ace}
+.site-head{background:#0e2144}
+.site-nav a{border-radius:7px;font-weight:700}
+.site-nav a:hover,.site-nav [aria-current=page]{background:#254d86;color:#e9f8ff}
+.action-link{border-radius:9px;background:var(--amber);box-shadow:0 3px 0 #b07e24;letter-spacing:.005em}
+.action-link:hover{background:#ffe89e}
+:focus-visible{outline-color:var(--bright)}
+.arcade-feature{border-radius:16px;border-color:#658bc3}.arcade-feature h2{font-size:clamp(2.3rem,6vw,3.8rem)}.game-tabs button,#start{border-radius:8px}.game-tabs button[aria-pressed=true]{box-shadow:0 3px 0 #468db7}main section[aria-labelledby=title]{border-radius:16px}
 </style>
 <body>
 <header class="site-head"><div class="site-inner"><a class="site-logo" href="index.html"><span aria-hidden="true">✦</span>Zohan’s World</a><nav class="site-nav" aria-label="Main"><a href="index.html">Home</a><a href="games.html" aria-current="page">Arcade</a><a href="photo-booth.html">Photo Booth</a><a href="index.html#album">Album</a><a href="characters.html">Characters</a></nav></div></header>
