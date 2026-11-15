@@ -6,7 +6,8 @@ const home = readFileSync(join(__dirname, 'index.html'));
 const games = readFileSync(join(__dirname, 'games.html'));
 const booth = readFileSync(join(__dirname, 'photo-booth.html'));
 const runner = readFileSync(join(__dirname, 'runner.html'));
-const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner]]);
+const characters = readFileSync(join(__dirname, 'characters.html'));
+const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner], ['/characters.html', characters]]);
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '0.0.0.0';
 
