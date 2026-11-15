@@ -4,15 +4,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zohan’s Super Run</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#efe7ff;color:#272047;font:1rem system-ui}main{max-width:940px;margin:auto;padding:24px 16px 48px}a{color:inherit;font-weight:800}h1{font-size:clamp(2.5rem,8vw,5.5rem);margin:16px 0 0;letter-spacing:-.07em;line-height:1}canvas{display:block;width:100%;height:auto;background:#9fe3fb;border:6px solid white;border-radius:20px;box-shadow:0 5px #b49dde;touch-action:manipulation}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:18px}button{font:inherit;font-weight:800;border:0;border-radius:30px;background:#493084;color:white;padding:12px 22px;cursor:pointer}button:disabled{opacity:.5}button:focus-visible,a:focus-visible{outline:3px solid #864abd;outline-offset:3px}.cast{display:flex;flex-wrap:wrap;gap:8px;padding:0;list-style:none}.cast li{background:white;border-radius:99px;padding:6px 10px}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 75% 0,#4c347e,transparent 50%),#17132e;color:#fff7e8;font:1rem system-ui,sans-serif}
+main{width:min(1080px,calc(100% - 32px));margin:auto;padding:26px 0 54px}
+a{color:#d9caff;font-weight:750;text-underline-offset:4px}
+h1{font-size:clamp(2.65rem,7vw,5.4rem);margin:15px 0 0;letter-spacing:-.07em;line-height:1}
+h1 em{color:#ffd479;font-style:normal}
+.intro{color:#e8dcf7;margin:10px 0 20px}
+.race{overflow:hidden;border:1px solid #7767a5;border-radius:24px;background:#221938;box-shadow:0 12px 30px #0c091e80}
+.hud{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px}
+#score{color:#ffda8a;font-variant-numeric:tabular-nums}
+canvas{display:block;width:100%;height:auto;background:#9fe3fb;touch-action:manipulation}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:14px 16px}
+.controls label{font-weight:750;font-size:.9rem}
+button,select{font:inherit;font-weight:800;border:0;border-radius:12px;padding:11px 14px;color:#26163f;background:#ebdbff;cursor:pointer}
+#start{background:#ffcf6c}#jump{background:#a7ebda}
+button:disabled,select:disabled{opacity:.55;cursor:default}
+#status{min-height:1.4em;margin:0;padding:0 16px 14px;color:#e8dcf7;font-size:.9rem}
+:focus-visible{outline:3px solid #ffe695;outline-offset:3px}
+.cast{display:flex;flex-wrap:wrap;gap:8px;padding:0;list-style:none;margin-top:18px}
+.cast li{border:1px solid #6e5a97;background:#2b2146;border-radius:99px;padding:5px 10px;font-size:.85rem}
+@media(max-width:520px){.controls button{flex:1}.hud{font-size:.9rem}}
 </style>
 <main>
 <a href="games.html">← Back to arcade</a>
-<h1>Zohan’s Super Run</h1>
-<p>Run as Zohan or his little brother Zavi. Jump over crates and grab gold rings!</p>
+<h1>Zohan’s <em>Super Run</em></h1>
+<p class="intro">Run as Zohan or his little brother Zavi. Jump over crates and grab gold rings!</p>
+<section class="race" aria-label="Race track">
+<div class="hud"><strong>Sunset Circuit</strong><strong id="score">Rings 0 · Distance 0 m</strong></div>
 <canvas id="track" width="840" height="330" aria-label="Zohan, Zavi, and six friends running on a track"></canvas>
-<div class="controls"><label for="runner">Choose your runner</label><select id="runner"><option>Zohan</option><option>Zavi</option></select><button id="start">Start run</button><button id="jump" disabled>Jump ↑</button><strong id="score">Rings 0 · Distance 0 m</strong></div>
+<div class="controls"><label for="runner">Choose your runner</label><select id="runner"><option>Zohan</option><option>Zavi</option></select><button id="start">Start run</button><button id="jump" disabled>Jump ↑</button></div>
 <p id="status" role="status">Press Space, ↑, or tap the track to jump after starting.</p>
+</section>
 <ul class="cast" aria-label="Running crew">
 <li>Zohan</li><li>Zavi</li><li>Sonic</li><li>Knuckles</li><li>Tails</li><li>Elmo</li><li>Tom</li><li>Jerry</li>
 </ul>
@@ -95,9 +118,10 @@ function face(i,x,y,stride) {
 
 function draw() {
   const sky=ctx.createLinearGradient(0,0,0,ground);
-  sky.addColorStop(0,'#7969e9');sky.addColorStop(.5,'#9edcfa');sky.addColorStop(1,'#fff1b8');
+  sky.addColorStop(0,'#6253bd');sky.addColorStop(.55,'#e191c4');sky.addColorStop(1,'#ffe4ad');
   box(sky,0,0,840,330);
-  oval(695,66,36,36,'#fff2aa');
+  oval(690,91,56,56,'#ffe5a86b');
+  oval(690,91,40,40,'#fff2aa');
   for(let i=0;i<5;i++) {
     const cloud=i*210+60-distance*.18%210;
     const y=66+(i%2)*30;
@@ -106,9 +130,17 @@ function draw() {
   }
   for(let i=0;i<6;i++) oval(i*200-distance*.5%200,242,132,91,'#78aee0');
   for(let i=0;i<7;i++) oval(i*150-distance%150,257,106,57,'#62c5a0');
+  for (let i=0;i<9;i++) {
+    const treeX=i*105-distance*1.45%105;
+    box('#27675f',treeX-2,221,4,22);
+    polygon('#398879',[[treeX-13,230],[treeX,198],[treeX+13,230]]);
+    polygon('#53a28c',[[treeX-10,220],[treeX,195],[treeX+10,220]]);
+  }
   box('#a9ed86',0,ground-37,840,8);
   box('#427b78',0,ground-29,840,29);
-  box('#544283',0,ground,840,60);
+  const road=ctx.createLinearGradient(0,ground,0,330);
+  road.addColorStop(0,'#58446f');road.addColorStop(1,'#322449');
+  box(road,0,ground,840,60);
   box('#fdce75',0,ground,840,4);
   for(let i=0;i<13;i++) box('#e2cff9',i*75-distance*2%75,293,34,4);
   const stride=distance*1.15;
@@ -185,7 +217,8 @@ start.onclick=()=>{
   distance=rings=lift=velocity=0;items=[];next=0;
   crew.forEach((runner,i)=>Object.assign(runner,{x:65+i*138,speed:0,target:0,change:0,phase:i}));
   playing=true;last=performance.now();start.disabled=true;choice.disabled=true;jump.disabled=false;
-  status.textContent='The crew is running!';
+  score.textContent='Rings 0 · Distance 0 m';
+  status.textContent='Space, ↑, or tap to jump.';
   requestAnimationFrame(update);
 };
 jump.onclick=leap;
