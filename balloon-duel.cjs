@@ -8,6 +8,7 @@ const roomLifetime = 25 * 60_000;
 const roundLength = 45_000;
 const balloonInterval = 660;
 const flightTime = 4100;
+const comboWindow = 10_000;
 
 setInterval(() => {
   const now = Date.now();
@@ -49,7 +50,7 @@ function validPhoto(photo) {
 }
 
 function player(photo) {
-  return {token:randomBytes(24).toString('base64url'), photo, hits:new Set(), score:0, ready:false};
+  return {token:randomBytes(24).toString('base64url'), photo, hits:new Set(), score:0, correct:0, combo:0, bestCombo:0, lastCorrect:0, ready:false};
 }
 
 function createLineup() {
@@ -74,7 +75,11 @@ function snapshot(room, index) {
     code:room.code, start:room.start, now:Date.now(), round:room.round,
     duration:roundLength, interval:balloonInterval, flight:flightTime, lineup:room.lineup ?? [],
     connected:Boolean(opponent), ready:room.players.map(member => member.ready), index,
-    scores:room.players.map(member => member.score)
+    scores:room.players.map(member => member.score),
+    stats:room.players.map(member => ({
+      correct:member.correct, attempts:member.hits.size, bestCombo:member.bestCombo,
+      combo:Date.now() - member.lastCorrect <= comboWindow ? member.combo : 0
+    }))
   };
 }
 
@@ -128,7 +133,7 @@ async function handleDuel(request, response, path) {
       if (room.players.every(member => member.ready)) {
         for (const member of room.players) {
           member.hits.clear();
-          member.score = 0;
+          member.score = member.correct = member.combo = member.bestCombo = member.lastCorrect = 0;
           member.ready = false;
         }
         room.lineup = createLineup();
@@ -148,13 +153,26 @@ async function handleDuel(request, response, path) {
       }
       const target = room.lineup[balloon];
       const isOpponent = target === 1 - index;
-      const points = isOpponent ? (balloon % 7 === 6 ? 3 : 1) : 0;
-      const alreadyPopped = member.hits.has(balloon);
-      member.hits.add(balloon);
-      if (!alreadyPopped) member.score += points;
+      let points = 0;
+      let multiplier = 1;
+      if (!member.hits.has(balloon)) {
+        member.hits.add(balloon);
+        if (isOpponent) {
+          const now = Date.now();
+          member.combo = now - member.lastCorrect <= comboWindow ? member.combo + 1 : 1;
+          member.lastCorrect = now;
+          member.correct++;
+          member.bestCombo = Math.max(member.bestCombo, member.combo);
+          multiplier = Math.min(3, 1 + Math.floor(member.combo / 3));
+          points = (balloon % 7 === 6 ? 3 : 1) * multiplier;
+          member.score += points;
+        } else {
+          member.combo = 0;
+        }
+      }
       return send(response, 200, {
         ...snapshot(room, index),
-        pop: {points:alreadyPopped ? 0 : points, kind:isOpponent ? 'friend' : target === index ? 'you' : 'cartoon'}
+        pop: {points, multiplier, kind:isOpponent ? 'friend' : target === index ? 'you' : 'cartoon'}
       });
     }
     return send(response, 405, {error:'Method not allowed.'});

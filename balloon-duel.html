@@ -50,6 +50,17 @@ canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none}
 .arena-overlay{position:absolute;inset:0;display:grid;align-content:center;justify-items:center;text-align:center;background:#18153490;padding:10px}
 .arena-overlay .panel{max-width:320px}
 #countdown{font:800 clamp(3rem,13vw,7rem)/1 'Barlow Condensed',system-ui,sans-serif;color:#fff6c4}
+.match-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:8px 0}
+.match-head p{margin:0;color:#eadcfb;font-size:.84rem}
+.match-head strong{color:#ffecb4}
+#sound[aria-pressed=true]{background:#bdf9ee;color:#173342}
+.round-meter{display:block;width:100%;height:6px;border:0;border-radius:999px;overflow:hidden;appearance:none;background:#25234b}
+.round-meter::-webkit-progress-bar{background:#25234b}
+.round-meter::-webkit-progress-value{background:linear-gradient(90deg,#bf83ff,#76f3de)}
+.round-meter::-moz-progress-bar{background:linear-gradient(90deg,#bf83ff,#76f3de)}
+.panel h2{color:#fff4d8}
+.arena{box-shadow:0 18px 45px #09092190}
+.arena::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 28px #1b0d415d;border-radius:inherit}
 #status{min-height:1.5em;color:#fff1af}
 @media(max-width:580px){.setup{grid-template-columns:1fr}.scoreboard>div{padding:6px 8px}canvas{aspect-ratio:5/6}}
 </style>
@@ -92,6 +103,11 @@ canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none}
 <div class="time"><strong id="time">45s</strong></div>
 <div><span><img id="friend-avatar" alt="" hidden>Friend</span><strong id="theirs">0</strong></div>
 </div>
+<div class="match-head">
+<p>Combo <strong id="combo">×1</strong> · Accuracy <strong id="accuracy">—</strong></p>
+<button type="button" id="sound" aria-pressed="false">Sound off</button>
+</div>
+<progress id="round-meter" class="round-meter" max="45" value="45" aria-label="Time remaining"></progress>
 <div class="arena">
 <canvas id="board" width="960" height="600" tabindex="0" aria-label="Mixed photo and cartoon balloons. Use keys 1 through 5 to pop a balloon in that lane."></canvas>
 <div class="arena-overlay" id="lobby">
@@ -103,7 +119,7 @@ canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none}
 </div>
 </div>
 </div>
-<p>Pop your friend’s balloons for points. A gold star on their balloon is worth 3. Tap, click, or use keys <strong>1–5</strong>.</p>
+<p>Pop your friend’s balloons for points. Gold stars start at 3 points. Chain quick hits for up to <strong>3× points</strong>. Tap, click, or use keys <strong>1–5</strong>.</p>
 </section>
 <p id="status" role="status"></p>
 </main>
@@ -113,6 +129,38 @@ const camera = get('camera'), preview = get('preview'), photoInput = get('file')
 const create = get('create'), join = get('join'), codeInput = get('room-code'), status = get('status');
 const ready = get('ready'), lobby = get('lobby'), board = get('board'), context = board.getContext('2d');
 const small = matchMedia('(max-width: 580px)');
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const meter = get('round-meter'), sound = get('sound');
+let audio, soundEnabled = false;
+
+sound.onclick = async () => {
+  if (soundEnabled) {
+    soundEnabled = false;
+  } else {
+    try {
+      audio ??= new AudioContext();
+      await audio.resume();
+      soundEnabled = true;
+    } catch {}
+  }
+  sound.textContent = soundEnabled ? 'Sound on' : 'Sound off';
+  sound.setAttribute('aria-pressed', String(soundEnabled));
+};
+
+function playPop(points) {
+  if (!soundEnabled || audio?.state !== 'running') return;
+  const tone = audio.createOscillator();
+  const gain = audio.createGain();
+  const time = audio.currentTime;
+  tone.type = points ? 'sine' : 'triangle';
+  tone.frequency.setValueAtTime(points > 1 ? 880 : points ? 560 : 190, time);
+  tone.frequency.exponentialRampToValueAtTime(points > 1 ? 1220 : 95, time + .13);
+  gain.gain.setValueAtTime(.075, time);
+  gain.gain.exponentialRampToValueAtTime(.001, time + .18);
+  tone.connect(gain).connect(audio.destination);
+  tone.start(time);
+  tone.stop(time + .19);
+}
 const palette = ['#fd7eb9','#7cdeff','#bc98ff','#9dffce','#ffa579'];
 const cartoons = ['🦊', '🤖', '🐱', '👽'];
 const opponent = new Image();
@@ -267,6 +315,9 @@ function apply(data, before) {
   }
   get('mine').textContent = data.scores[data.index];
   get('theirs').textContent = data.scores[1-data.index] ?? 0;
+  const stats = data.stats[data.index];
+  get('combo').textContent = '×' + Math.min(3, 1 + Math.floor(stats.combo / 3));
+  get('accuracy').textContent = stats.attempts ? Math.round(100 * stats.correct / stats.attempts) + '%' : '—';
 }
 
 async function poll() {
@@ -348,6 +399,8 @@ function leaveRoom() {
   cancelAnimationFrame(animation);
   clearTimeout(pollTimer);
   get('room').hidden = true;
+  get('combo').textContent = '×1';
+  get('accuracy').textContent = '—';
   get('setup').hidden = false;
   updateEntryButtons();
 }
@@ -379,9 +432,10 @@ function oval(context, x, y, rx, ry, fill) {
 
 function drawBackdrop() {
   const gradient = sky.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0, '#201940');
-  gradient.addColorStop(.55, '#684789');
-  gradient.addColorStop(1, '#fa9c9a');
+  gradient.addColorStop(0, '#15163b');
+  gradient.addColorStop(.37, '#443373');
+  gradient.addColorStop(.72, '#b96599');
+  gradient.addColorStop(1, '#ffc69a');
   sky.fillStyle = gradient;
   sky.fillRect(0, 0, width, height);
 
@@ -394,6 +448,15 @@ function drawBackdrop() {
   disc.addColorStop(0, '#fff0b8');
   disc.addColorStop(1, '#ff93b4');
   oval(sky, sunX, sunY, radius, radius, disc);
+  sky.save();
+  sky.beginPath();
+  sky.arc(sunX, sunY, radius, 0, Math.PI * 2);
+  sky.clip();
+  sky.fillStyle = '#af5d9b55';
+  for (let stripe = 0; stripe < 6; stripe++) {
+    sky.fillRect(sunX - radius, sunY + radius * .15 + stripe * radius * .145, radius * 2, 2 + stripe * .85);
+  }
+  sky.restore();
   for (let i = 0; i < 38; i++) {
     oval(sky, ((i * 127 + 29) % 997) / 997 * width, ((i * 47) % 173) / 173 * height * .62,
       i % 7 === 0 ? 2 : 1, i % 7 === 0 ? 2 : 1, i % 3 ? '#ffe9f699' : '#ffe3b9');
@@ -410,7 +473,7 @@ function drawBackdrop() {
   }
 
   for (const [fill, baseline, amplitude, phase] of [
-    ['#814d87', .84, .105, .5], ['#593b74', .91, .075, 2], ['#342c59', .99, .068, 3.7]
+    ['#ad73a0', .75, .092, .5], ['#79558b', .83, .078, 2], ['#514271', .93, .081, 3.7], ['#2a294f', 1, .043, 5.2]
   ]) {
     sky.beginPath();
     sky.moveTo(0, height);
@@ -420,7 +483,21 @@ function drawBackdrop() {
     }
     sky.lineTo(width, height);
     sky.closePath();
-    sky.fillStyle = fill;
+    const slope = sky.createLinearGradient(0, (baseline - amplitude) * height, 0, height);
+    slope.addColorStop(0, fill);
+    slope.addColorStop(1, '#252246');
+    sky.fillStyle = slope;
+    sky.fill();
+  }
+  for (let i = 0; i < 45; i++) {
+    const x = (i * 73 + 19) % width;
+    const base = height - ((i * 11) % 23);
+    const tall = 6 + (i * 19) % 31;
+    sky.fillStyle = '#201f45';
+    sky.beginPath();
+    sky.moveTo(x, base - tall);
+    sky.lineTo(x - tall * .22, base);
+    sky.lineTo(x + tall * .22, base);
     sky.fill();
   }
 }
@@ -431,6 +508,18 @@ function resize() {
   drawBackdrop();
 }
 small.addEventListener('change', resize);
+
+function drawFireflies(now) {
+  if (reduceMotion) return;
+  for (let i = 0; i < 12; i++) {
+    const x = (i * 97 + 23 + now * .013) % width;
+    const y = height * (.71 + ((i * 17) % 19) / 100) + Math.sin(now * .0017 + i) * 13;
+    const light = (.5 + Math.sin(now * .0025 + i * 2) * .45) * .65;
+    context.globalAlpha = light;
+    oval(context, x, y, 2.5, 2.5, '#ffe4aa');
+  }
+  context.globalAlpha = 1;
+}
 
 function drawTarget(target) {
   const {x,y,r,bonus,id,owner} = target;
@@ -469,6 +558,10 @@ function drawTarget(target) {
     context.textBaseline = 'middle';
     context.fillText(cartoons[owner - 2], 0, -r * .02);
   }
+  context.beginPath();
+  context.ellipse(-r*.34,-r*.62,r*.22,r*.076,-.46,0,Math.PI*2);
+  context.fillStyle='#fff7ff95';
+  context.fill();
   if (bonus) {
     context.font='900 28px system-ui';
     context.textAlign='center';
@@ -482,6 +575,7 @@ function drawTarget(target) {
 function draw(now) {
   if (!membership) return;
   context.drawImage(backdrop, 0, 0);
+  drawFireflies(now);
   const data=snapshot;
   const age=data?.start ? Date.now()+clockDelta-data.start : -Infinity;
   const playing=age>=0 && age<data.duration;
@@ -492,7 +586,9 @@ function draw(now) {
     const finished=Boolean(data.start);
     const mine=data.scores[data.index], theirs=data.scores[1-data.index];
     const title=finished ? mine===theirs?'Tie game':mine>theirs?'You won!':'Your friend won!' : 'Both players are here';
-    showLobby(title, finished ? `Final score: ${mine}–${theirs}.` : 'Both players tap Ready. Only your friend’s photo scores.',
+    const stats=data.stats[data.index];
+    const recap=`Final score: ${mine}–${theirs}. Best streak: ${stats.bestCombo}. Accuracy: ${stats.attempts ? Math.round(stats.correct / stats.attempts * 100) : 0}%.`;
+    showLobby(title, finished ? recap : 'Both players tap Ready. Only your friend’s photo scores.',
       data.ready[data.index]?'Waiting for friend':finished?'Ready for rematch':'Ready', data.ready[data.index]);
   } else if (!playing) {
     showLobby('Get ready','');
@@ -503,6 +599,7 @@ function draw(now) {
   }
   const seconds=playing ? Math.ceil((data.duration-age)/1000) : data?.start && age>=data.duration ? 0 : 45;
   setText(get('time'),seconds+'s');
+  meter.value=playing ? Math.max(0,(data.duration-age)/1000) : seconds;
   targets=[];
   if (playing) {
     const earliest=Math.max(0,Math.ceil((age-data.flight)/data.interval));
@@ -527,14 +624,24 @@ function draw(now) {
     }
   }
   for (let i=bursts.length-1;i>=0;i--) {
-    const burst=bursts[i], fraction=(now-burst.start)/400;
+    const burst=bursts[i], fraction=(now-burst.start)/650;
     if (fraction>=1) {bursts.splice(i,1);continue;}
     context.globalAlpha=1-fraction;
-    for (let ray=0;ray<13;ray++) {
-      const angle=ray*Math.PI*2/13;
+    const rays = reduceMotion ? 4 : burst.correct ? 20 : 8;
+    context.strokeStyle=burst.correct?'#ffe6a0':'#ccbbef';
+    context.lineWidth=2.4;
+    context.beginPath();
+    context.arc(burst.x,burst.y,15+fraction*72,0,Math.PI*2);
+    context.stroke();
+    for (let ray=0;ray<rays;ray++) {
+      const angle=ray*Math.PI*2/rays;
       context.fillStyle=palette[ray%palette.length];
       const radius=14+fraction*68;
-      context.fillRect(burst.x+Math.cos(angle)*radius,burst.y+Math.sin(angle)*radius,6,6);
+      context.save();
+      context.translate(burst.x+Math.cos(angle)*radius,burst.y+Math.sin(angle)*radius+fraction*fraction*25);
+      context.rotate(angle+fraction*4);
+      context.fillRect(-3,-2,7,4);
+      context.restore();
     }
     context.fillStyle=burst.correct ? '#fff8b6' : '#f5e7ff';
     context.textAlign='center';
@@ -551,13 +658,22 @@ async function pop(target) {
   if (!session || !target || pending.has(target.id) || consumed.has(target.id)) return;
   pending.add(target.id);
   const correct = target.owner === 1 - snapshot.index;
-  const label = correct ? (target.bonus ? '+3' : '+1') : target.owner === snapshot.index ? 'Your balloon' : 'Cartoon';
-  bursts.push({x:target.x,y:target.y,start:performance.now(),correct,label});
+  const label = correct ? '' : target.owner === snapshot.index ? 'Your balloon' : 'Cartoon';
+  const burst = {x:target.x,y:target.y,start:performance.now(),correct,label};
+  bursts.push(burst);
   const before=Date.now();
   try {
     const data=await request('/'+session.code+'/pop',{balloon:target.id,round},session);
     if (membership!==session || round!==currentRound) return;
     consumed.add(target.id);
+    if (data.pop.points) {
+      burst.label = '+' + data.pop.points + (data.pop.multiplier > 1 ? '  ×' + data.pop.multiplier : '');
+      if (performance.now() - burst.start > 310) {
+        burst.start = performance.now();
+        if (!bursts.includes(burst)) bursts.push(burst);
+      }
+    }
+    playPop(data.pop.points);
     apply(data,before);
   } catch (error) {
     if (membership===session && error.status!==409) status.textContent='A pop could not be sent. Check your connection.';
