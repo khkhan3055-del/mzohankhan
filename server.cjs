@@ -7,7 +7,8 @@ const games = readFileSync(join(__dirname, 'games.html'));
 const booth = readFileSync(join(__dirname, 'photo-booth.html'));
 const runner = readFileSync(join(__dirname, 'runner.html'));
 const characters = readFileSync(join(__dirname, 'characters.html'));
-const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner], ['/characters.html', characters]]);
+const balloonPop = readFileSync(join(__dirname, 'balloon-pop.html'));
+const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner], ['/characters.html', characters], ['/balloon-pop.html', balloonPop]]);
 const photos = new Map(
   readdirSync(join(__dirname, 'photos'))
     .filter(name => name.endsWith('.jpg'))

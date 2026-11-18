@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10162f">
+<title>Balloon Pop | Zohan’s World</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/zohan-192.png">
+<link rel="icon" href="/icons/zohan-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Sans:wght@400;600;700;800&display=swap">
+<script src="/pwa.js" defer></script>
+<style>
+:root{color-scheme:dark;background:#10162f;color:#f8f5ff;font:16px/1.45 "DM Sans",system-ui,sans-serif;--muted:#b9c1eb;--line:#43507c;--gold:#ffdf86}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 68% 0,#36255c,transparent 64%),#10162f}
+[hidden]{display:none!important}
+a{color:inherit}
+button{cursor:pointer;font:inherit;font-weight:800}
+button:focus-visible,a:focus-visible,canvas:focus-visible{outline:3px solid #a5efff;outline-offset:4px}
+header,main{width:min(940px,calc(100% - 32px));margin:auto}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 0;border-bottom:1px solid var(--line)}
+header a{text-decoration:none;font-weight:800}
+header a:last-child{color:#d5d5fa}
+main{padding:18px 0 28px}
+h1,h2{font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;font-weight:800;line-height:1;margin:0}
+h1{font-size:clamp(2.6rem,8vw,5.4rem)}
+.title{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}
+.sound,#pause{padding:.48rem .72rem;border:1px solid var(--line);border-radius:10px;background:#26284d;color:inherit}
+.hud{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.stat{padding:6px 12px;background:#1b2140;border:1px solid var(--line);border-radius:10px}
+.stat span{color:var(--muted);font-size:.77rem}
+.stat strong{display:block;color:#fff;font-size:clamp(.96rem,2.6vw,1.45rem);font-variant-numeric:tabular-nums}
+.arena{position:relative;overflow:hidden;border:1px solid #7470a5;border-radius:18px;background:#31245f;box-shadow:0 14px 35px #080a1ba8}
+canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;padding:12px;background:#18133364}
+.panel{width:min(390px,100%);padding:clamp(14px,3vw,28px);text-align:center;border:1px solid #c5b7ed6e;border-radius:16px;background:#191b3aed;box-shadow:0 13px 30px #09081ca0}
+.panel h2{font-size:clamp(1.75rem,6vw,3.1rem)}
+.panel p{margin:8px 0 14px;color:#e8defc;font-size:clamp(.78rem,2.7vw,1rem)}
+#play{padding:.56rem 1.18rem;border:0;border-radius:10px;background:var(--gold);color:#27203e;box-shadow:0 3px 0 #a67a3a}
+#pause{position:absolute;right:10px;top:10px;background:#171735ed}
+.help{display:flex;flex-wrap:wrap;gap:6px 18px;margin:12px 0 0;color:var(--muted);font-size:.87rem}
+.help strong{color:#fff}
+@media(max-width:530px){canvas{aspect-ratio:5/6}.stat{padding:5px;text-align:center}.hud{gap:4px}.arena{border-radius:12px}}
+</style>
+</head>
+<body>
+<header><a href="/">✦ Zohan’s World</a><a href="/games.html">← Arcade</a></header>
+<main>
+<div class="title"><h1>Balloon Pop</h1><button type="button" id="sound" class="sound" aria-pressed="false">Sound off</button></div>
+<div class="hud" aria-label="Game stats">
+<div class="stat"><span>Score</span><strong id="score">0</strong></div>
+<div class="stat"><span>Best</span><strong id="best">0</strong></div>
+<div class="stat"><span>Time</span><strong id="time">60s</strong></div>
+<div class="stat"><span>Lives</span><strong id="lives">5</strong></div>
+<div class="stat"><span>Combo</span><strong id="combo">×1</strong></div>
+</div>
+<div class="arena">
+<canvas id="board" width="960" height="600" tabindex="0" aria-label="Balloon Pop board. Press 1 through 5 to pop balloons in their lanes." aria-describedby="instructions"></canvas>
+<button type="button" id="pause" hidden>Pause</button>
+<div class="overlay" id="overlay">
+<div class="panel"><h2 id="round-title">Ready to pop?</h2><p id="round-message" role="status">Pop balloons before they float away. Catch gold stars and avoid storm balloons.</p><button type="button" id="play">Play</button></div>
+</div>
+</div>
+<p id="instructions" class="help"><span><strong>Tap or click</strong> balloons</span><span><strong>1–5</strong> pop a lane</span><span><strong>Gold star</strong> bonus points</span><span><strong>Storm</strong> costs a life</span></p>
+</main>
+<script>
+const get = id => document.getElementById(id);
+const board = get('board');
+const ctx = board.getContext('2d');
+const backdrop = document.createElement('canvas');
+const sky = backdrop.getContext('2d');
+const overlay = get('overlay'), play = get('play'), pause = get('pause'), sound = get('sound');
+const scoreLabel = get('score'), bestLabel = get('best'), timeLabel = get('time');
+const livesLabel = get('lives'), comboLabel = get('combo');
+const colors = [
+  ['#ffd1e5', '#ff5d9a', '#8c245a'],
+  ['#d7fdff', '#42cbfa', '#2866ae'],
+  ['#f2dcff', '#a875ff', '#5d2d9e'],
+  ['#f7ffc0', '#81eb97', '#208175'],
+  ['#fff0c1', '#ff975e', '#ab425f']
+];
+const gold = ['#fff7c0', '#f6c450', '#ae6a20'];
+const storm = ['#afb2d8', '#585882', '#25223b'];
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const compact = matchMedia('(max-width: 530px)');
+const balloons = [], particles = [], floating = [];
+const laneCount = 5;
+const duration = 60;
+const startingLives = 5;
+const random = (low, high) => low + Math.random() * (high - low);
+let width, height, audio;
+let muted = true;
+let state = 'ready';
+let score = 0, streak = 0, lives = startingLives, remaining = duration;
+let elapsed = 0, spawnIn = 0, lastPop = -100, lastFrame = 0, animation = 0;
+let best = 0;
+try { best = Number(localStorage.getItem('zohan-balloon-best')) || 0; } catch {}
+bestLabel.textContent = best;
+
+function oval(context, x, y, rx, ry, fill) {
+  context.beginPath();
+  context.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+  context.fillStyle = fill;
+  context.fill();
+}
+
+function drawBackdrop() {
+  const gradient = sky.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, '#201940');
+  gradient.addColorStop(.55, '#684789');
+  gradient.addColorStop(1, '#fa9c9a');
+  sky.fillStyle = gradient;
+  sky.fillRect(0, 0, width, height);
+
+  const sunX = width * .76, sunY = height * .27, radius = width * .104;
+  const glow = sky.createRadialGradient(sunX, sunY, radius * .55, sunX, sunY, radius * 2.6);
+  glow.addColorStop(0, '#ffb6d87a');
+  glow.addColorStop(1, '#ffb6d800');
+  oval(sky, sunX, sunY, radius * 2.6, radius * 2.6, glow);
+  const disc = sky.createLinearGradient(0, sunY - radius, 0, sunY + radius);
+  disc.addColorStop(0, '#fff0b8');
+  disc.addColorStop(1, '#ff93b4');
+  oval(sky, sunX, sunY, radius, radius, disc);
+  for (let i = 0; i < 38; i++) {
+    oval(sky, ((i * 127 + 29) % 997) / 997 * width, ((i * 47) % 173) / 173 * height * .62,
+      i % 7 === 0 ? 2 : 1, i % 7 === 0 ? 2 : 1, i % 3 ? '#ffe9f699' : '#ffe3b9');
+  }
+
+  for (const [x, y, scale] of [[.12,.29,.85],[.47,.18,.55],[.81,.48,.73],[.29,.56,.62]]) {
+    sky.save();
+    sky.translate(x * width, y * height);
+    sky.scale(scale, scale);
+    oval(sky, 0, 0, 64, 10, '#ffdeec3b');
+    oval(sky, -17, -6, 32, 13, '#ffdeec3b');
+    oval(sky, 23, -7, 22, 15, '#ffdeec3b');
+    sky.restore();
+  }
+
+  for (const [fill, baseline, amplitude, phase] of [
+    ['#814d87', .84, .105, .5], ['#593b74', .91, .075, 2], ['#342c59', .99, .068, 3.7]
+  ]) {
+    sky.beginPath();
+    sky.moveTo(0, height);
+    for (let x = 0; x <= width; x += 8) {
+      const peak = (Math.sin(x / width * 8 + phase) + Math.sin(x / width * 17 + phase) * .35) * amplitude;
+      sky.lineTo(x, (baseline + peak) * height);
+    }
+    sky.lineTo(width, height);
+    sky.closePath();
+    sky.fillStyle = fill;
+    sky.fill();
+  }
+}
+
+function resize() {
+  const previousWidth = width, previousHeight = height;
+  width = compact.matches ? 600 : 960;
+  height = compact.matches ? 720 : 600;
+  for (const item of [...balloons, ...particles, ...floating]) {
+    item.x *= width / previousWidth;
+    item.y *= height / previousHeight;
+  }
+  board.width = backdrop.width = width;
+  board.height = backdrop.height = height;
+  drawBackdrop();
+  render();
+}
+
+function balloonPosition(balloon) {
+  return balloon.x + Math.sin(elapsed * 2.15 + balloon.phase) * balloon.drift;
+}
+
+function drawBalloon(balloon) {
+  const {y, radius: r, palette, kind} = balloon;
+  const x = balloonPosition(balloon);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(Math.cos(elapsed * 2.15 + balloon.phase) * .085);
+  ctx.strokeStyle = '#fff1f7a0';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(0, r * 1.08);
+  ctx.bezierCurveTo(-r * .4, r * 1.55, r * .39, r * 1.88, -r * .1, r * 2.28);
+  ctx.stroke();
+
+  const sheen = ctx.createRadialGradient(-r * .32, -r * .48, r * .05, 0, 0, r * 1.17);
+  sheen.addColorStop(0, palette[0]);
+  sheen.addColorStop(.53, palette[1]);
+  sheen.addColorStop(1, palette[2]);
+  ctx.shadowBlur = kind === 'gold' ? 18 : 8;
+  ctx.shadowColor = kind === 'gold' ? '#ffda7e' : palette[2];
+  oval(ctx, 0, 0, r, r * 1.12, sheen);
+  ctx.shadowBlur = 0;
+  oval(ctx, -r * .35, -r * .53, r * .21, r * .13, '#ffffff8b');
+  oval(ctx, -r * .56, -r * .28, r * .063, r * .065, '#ffffff75');
+  ctx.fillStyle = palette[2];
+  ctx.beginPath();
+  ctx.moveTo(0, r);
+  ctx.lineTo(-r * .17, r * 1.22);
+  ctx.lineTo(r * .17, r * 1.22);
+  ctx.fill();
+  if (kind !== 'regular') {
+    ctx.font = `900 ${r * 1.08}px system-ui`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = kind === 'gold' ? '#643911' : '#fff2aa';
+    ctx.fillText(kind === 'gold' ? '★' : 'ϟ', 0, r * .1);
+  }
+  ctx.restore();
+}
+
+function render() {
+  ctx.drawImage(backdrop, 0, 0);
+  if (state === 'running' || state === 'paused') {
+    for (let lane = 0; lane < laneCount; lane++) {
+      const center = (lane + .5) * width / laneCount;
+      oval(ctx, center, height - 25, 13, 13, '#1d214be3');
+      ctx.fillStyle = '#efe5ff';
+      ctx.font = 'bold 15px system-ui';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(lane + 1, center, height - 25);
+    }
+  }
+  balloons.forEach(drawBalloon);
+  for (const particle of particles) {
+    ctx.globalAlpha = Math.min(1, particle.life * 2.5);
+    ctx.fillStyle = particle.color;
+    ctx.fillRect(particle.x, particle.y, particle.size, particle.size * .72);
+  }
+  for (const label of floating) {
+    ctx.globalAlpha = Math.min(1, label.life * 2.8);
+    ctx.fillStyle = label.color;
+    ctx.textAlign = 'center';
+    ctx.font = '900 27px system-ui';
+    ctx.fillText(label.text, label.x, label.y);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function spawn(lane, y = height + 58, regular = false) {
+  const roll = regular ? 1 : Math.random();
+  const kind = roll < .13 ? 'gold' : roll < .27 && elapsed > 6 ? 'storm' : 'regular';
+  const palette = kind === 'gold' ? gold : kind === 'storm' ? storm : colors[Math.floor(random(0, colors.length))];
+  balloons.push({
+    lane, x: (lane + .5) * width / laneCount, y, kind, palette,
+    radius: random(30, 41), velocity: random(61, 97) + elapsed * 1.05,
+    phase: random(0, 7), drift: random(10, 23)
+  });
+}
+
+function emitPop(balloon, text, textColor) {
+  const x = balloonPosition(balloon);
+  floating.push({text, x, y: balloon.y, life: .72, color: textColor});
+  for (let i = 0; i < (reducedMotion ? 4 : 26); i++) {
+    const angle = random(0, Math.PI * 2), speed = random(45, 245);
+    particles.push({
+      x, y: balloon.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      size: random(3, 11), life: random(.28, .72), color: balloon.palette[i % 3]
+    });
+  }
+}
+
+function updateStats() {
+  scoreLabel.textContent = score;
+  bestLabel.textContent = Math.max(score, best);
+  comboLabel.textContent = '×' + multiplier();
+  livesLabel.textContent = lives;
+  timeLabel.textContent = Math.ceil(remaining) + 's';
+}
+
+function multiplier() {
+  return Math.min(5, 1 + Math.floor(streak / 4));
+}
+
+function playTone(kind) {
+  if (muted || audio?.state !== 'running') return;
+  const now = audio.currentTime;
+  const tone = audio.createOscillator(), volume = audio.createGain();
+  tone.type = 'sine';
+  tone.frequency.setValueAtTime(kind === 'storm' ? 180 : kind === 'gold' ? 880 : 580, now);
+  tone.frequency.exponentialRampToValueAtTime(kind === 'storm' ? 65 : kind === 'gold' ? 1460 : 260, now + .12);
+  volume.gain.setValueAtTime(.095, now);
+  volume.gain.exponentialRampToValueAtTime(.001, now + .13);
+  tone.connect(volume);
+  volume.connect(audio.destination);
+  tone.start(now);
+  tone.stop(now + .14);
+}
+
+function pop(index) {
+  if (state !== 'running' || index < 0) return;
+  const [balloon] = balloons.splice(index, 1);
+  playTone(balloon.kind);
+  if (balloon.kind === 'storm') {
+    streak = 0;
+    lives--;
+    emitPop(balloon, '−1 life', '#ffadba');
+  } else {
+    streak = elapsed - lastPop < 2.1 ? streak + 1 : 1;
+    lastPop = elapsed;
+    const points = (balloon.kind === 'gold' ? 50 : 10) * multiplier();
+    score += points;
+    emitPop(balloon, '+' + points, balloon.kind === 'gold' ? '#fff0a6' : '#fff');
+  }
+  updateStats();
+  if (!lives) finish();
+}
+
+function frame(now) {
+  if (state !== 'running') return;
+  const delta = lastFrame ? Math.min(.08, (now - lastFrame) / 1000) : 0;
+  lastFrame = now;
+  elapsed += delta;
+  remaining = Math.max(0, duration - elapsed);
+  if (elapsed - lastPop >= 2.1) streak = 0;
+  spawnIn -= delta;
+  if (spawnIn <= 0) {
+    const freeLanes = Array.from({length: laneCount}, (_, lane) => lane)
+      .filter(lane => !balloons.some(balloon => balloon.lane === lane && balloon.y > height - 125));
+    if (freeLanes.length) spawn(freeLanes[Math.floor(Math.random() * freeLanes.length)]);
+    spawnIn = Math.max(.35, .92 - elapsed * .009);
+  }
+  for (let i = balloons.length - 1; i >= 0; i--) {
+    const balloon = balloons[i];
+    balloon.y -= balloon.velocity * delta;
+    if (balloon.y < -balloon.radius * 2.4) {
+      balloons.splice(i, 1);
+      if (balloon.kind === 'regular') {
+        lives = Math.max(0, lives - 1);
+        streak = 0;
+      }
+    }
+  }
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= delta;
+    if (p.life <= 0) {
+      particles.splice(i, 1);
+      continue;
+    }
+    p.x += p.vx * delta;
+    p.y += p.vy * delta;
+    p.vy += 230 * delta;
+  }
+  for (let i = floating.length - 1; i >= 0; i--) {
+    floating[i].life -= delta;
+    floating[i].y -= delta * 52;
+    if (floating[i].life <= 0) floating.splice(i, 1);
+  }
+  updateStats();
+  render();
+  if (!lives || !remaining) finish();
+  else animation = requestAnimationFrame(frame);
+}
+
+function showPanel(title, message, buttonText) {
+  get('round-title').textContent = title;
+  get('round-message').textContent = message;
+  play.textContent = buttonText;
+  pause.hidden = true;
+  overlay.hidden = false;
+}
+
+function startOrResume() {
+  if (state !== 'paused') {
+    score = streak = elapsed = 0;
+    lastPop = -100;
+    remaining = duration;
+    lives = startingLives;
+    balloons.length = particles.length = floating.length = 0;
+    spawn(1, height * .69, true);
+    spawn(3, height * .83, true);
+    spawnIn = .48;
+  }
+  state = 'running';
+  lastFrame = 0;
+  overlay.hidden = true;
+  pause.hidden = false;
+  board.focus({preventScroll:true});
+  updateStats();
+  animation = requestAnimationFrame(frame);
+}
+
+function pauseRound(focusButton) {
+  if (state !== 'running') return;
+  state = 'paused';
+  cancelAnimationFrame(animation);
+  showPanel('Paused', 'Your round will pick up where you left off.', 'Resume');
+  if (focusButton) play.focus();
+}
+
+function finish() {
+  state = 'finished';
+  cancelAnimationFrame(animation);
+  const isRecord = score > best;
+  best = Math.max(best, score);
+  try { localStorage.setItem('zohan-balloon-best', String(best)); } catch {}
+  updateStats();
+  showPanel(isRecord ? 'New high score!' : remaining ? 'Out of lives' : 'Time’s up!',
+    `You scored ${score} points. Personal best: ${best}.`, 'Play again');
+  play.focus();
+}
+
+board.addEventListener('pointerdown', event => {
+  if (!event.isPrimary || event.button !== 0 || state !== 'running') return;
+  const bounds = board.getBoundingClientRect();
+  const x = (event.clientX - bounds.left) * width / bounds.width;
+  const y = (event.clientY - bounds.top) * height / bounds.height;
+  pop(balloons.findLastIndex(balloon => Math.hypot((x - balloonPosition(balloon)) / balloon.radius,
+    (y - balloon.y) / (balloon.radius * 1.12)) <= 1.12));
+});
+board.addEventListener('keydown', event => {
+  if (state !== 'running' || event.repeat) return;
+  if (event.key === 'Escape') {
+    pauseRound(true);
+    return;
+  }
+  if (!/^[1-5]$/.test(event.key)) return;
+  event.preventDefault();
+  const lane = Number(event.key) - 1;
+  let target = -1;
+  balloons.forEach((balloon, index) => {
+    if (balloon.lane === lane && balloon.y >= 0 && balloon.y < height &&
+        (target < 0 || balloon.y < balloons[target].y)) target = index;
+  });
+  pop(target);
+});
+play.addEventListener('click', startOrResume);
+pause.addEventListener('click', () => pauseRound(true));
+document.addEventListener('visibilitychange', () => { if (document.hidden) pauseRound(false); });
+sound.addEventListener('click', async () => {
+  muted = !muted;
+  if (!muted) {
+    try {
+      audio ??= new AudioContext();
+      await audio.resume();
+    } catch {
+      muted = true;
+    }
+  }
+  sound.textContent = muted ? 'Sound off' : 'Sound on';
+  sound.setAttribute('aria-pressed', String(!muted));
+});
+compact.addEventListener('change', resize);
+resize();
+for (const [lane, y] of [[0,.23],[1,.76],[2,.15],[3,.79],[4,.37]]) spawn(lane, height * y, true);
+render();
+</script>
+</body>
+</html>
