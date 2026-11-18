@@ -26,13 +26,23 @@ main{padding:18px 0 28px}
 h1,h2{font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;font-weight:800;line-height:1;margin:0}
 h1{font-size:clamp(2.6rem,8vw,5.4rem)}
 .title{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}
-.sound,#pause{padding:.48rem .72rem;border:1px solid var(--line);border-radius:10px;background:#26284d;color:inherit}
+.sound,#pause,#end-round{padding:.48rem .72rem;border:1px solid var(--line);border-radius:10px;background:#26284d;color:inherit}
 .hud{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}
 .stat{padding:6px 12px;background:#1b2140;border:1px solid var(--line);border-radius:10px}
 .stat span{color:var(--muted);font-size:.77rem}
 .stat strong{display:block;color:#fff;font-size:clamp(.96rem,2.6vw,1.45rem);font-variant-numeric:tabular-nums}
 .arena{position:relative;overflow:hidden;border:1px solid #7470a5;border-radius:18px;background:#31245f;box-shadow:0 14px 35px #080a1ba8}
 canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none}
+.mode-picker{display:flex;justify-content:center;gap:7px;margin:0 0 12px}
+.mode-picker button{padding:5px 10px;color:#eee8ff;background:#282749;border:1px solid #6f6598;border-radius:7px;font-size:.85rem}
+.mode-picker button[aria-pressed=true]{color:#231a3f;background:#d9c2ff;border-color:#d9c2ff}
+#round-clock{display:block;width:100%;height:5px;margin:0 0 8px;appearance:none;border:0;border-radius:9px;overflow:hidden;background:#272c54}
+#round-clock::-webkit-progress-bar{background:#272c54}
+#round-clock::-webkit-progress-value{background:linear-gradient(90deg,#c38bff,#ffcf86)}
+#round-clock::-moz-progress-bar{background:linear-gradient(90deg,#c38bff,#ffcf86)}
+#effect{position:absolute;left:10px;top:10px;margin:0;padding:5px 9px;border:1px solid #a18ec7;border-radius:8px;background:#211b46;color:#f8ecff;font-size:.77rem;font-weight:800;pointer-events:none}
+@media(min-width:531px){.panel{padding:22px 28px}}
+.arena::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 32px #150e3d61;border-radius:inherit}
 .overlay{position:absolute;inset:0;display:grid;place-items:center;padding:12px;background:#18133364}
 .panel{width:min(390px,100%);padding:clamp(14px,3vw,28px);text-align:center;border:1px solid #c5b7ed6e;border-radius:16px;background:#191b3aed;box-shadow:0 13px 30px #09081ca0}
 .panel h2{font-size:clamp(1.75rem,6vw,3.1rem)}
@@ -55,14 +65,16 @@ canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none}
 <div class="stat"><span>Lives</span><strong id="lives">5</strong></div>
 <div class="stat"><span>Combo</span><strong id="combo">×1</strong></div>
 </div>
+<progress id="round-clock" max="60" value="60" aria-label="Time remaining"></progress>
 <div class="arena">
 <canvas id="board" width="960" height="600" tabindex="0" aria-label="Balloon Pop board. Press 1 through 5 to pop balloons in their lanes." aria-describedby="instructions"></canvas>
+<p id="effect" role="status" hidden></p>
 <button type="button" id="pause" hidden>Pause</button>
 <div class="overlay" id="overlay">
-<div class="panel"><h2 id="round-title">Ready to pop?</h2><p id="round-message" role="status">Pop balloons before they float away. Catch gold stars and avoid storm balloons.</p><button type="button" id="play">Play</button></div>
+<div class="panel"><h2 id="round-title">Ready to pop?</h2><p id="round-message" role="status">Pop balloons before they float away. Catch gold stars and avoid storm balloons.</p><div class="mode-picker" id="mode-picker" role="group" aria-label="Game mode"><button type="button" data-mode="arcade" aria-pressed="true">Arcade</button><button type="button" data-mode="practice" aria-pressed="false">Practice</button></div><button type="button" id="play">Play</button> <button type="button" id="end-round" hidden>End round</button></div>
 </div>
 </div>
-<p id="instructions" class="help"><span><strong>Tap or click</strong> balloons</span><span><strong>1–5</strong> pop a lane</span><span><strong>Gold star</strong> bonus points</span><span><strong>Storm</strong> costs a life</span></p>
+<p id="instructions" class="help"><span><strong>Tap or click</strong> balloons</span><span><strong>1–5</strong> pop a lane</span><span><strong>Gold star</strong> bonus points</span><span><strong>Heart</strong> restores a life</span><span><strong>Snowflake</strong> slows balloons</span><span><strong>Storm</strong> costs a life</span></p>
 </main>
 <script>
 const get = id => document.getElementById(id);
@@ -82,16 +94,27 @@ const colors = [
 ];
 const gold = ['#fff7c0', '#f6c450', '#ae6a20'];
 const storm = ['#afb2d8', '#585882', '#25223b'];
+const heart = ['#ffe5e8', '#ff7a89', '#b5285c'];
+const frost = ['#e8ffff', '#74e8f8', '#3d74ba'];
+const specials = {
+  gold: {palette: gold, mark: '★', ink: '#643911'},
+  storm: {palette: storm, mark: 'ϟ', ink: '#fff2aa'},
+  heart: {palette: heart, mark: '♥', ink: '#74183d'},
+  frost: {palette: frost, mark: '❄', ink: '#173e73'}
+};
+const clock = get('round-clock'), effect = get('effect'), modePicker = get('mode-picker');
+const endRound = get('end-round');
+const modeButtons = [...modePicker.querySelectorAll('button')];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const compact = matchMedia('(max-width: 530px)');
-const balloons = [], particles = [], floating = [];
+const balloons = [], particles = [], floating = [], rings = [];
 const laneCount = 5;
 const duration = 60;
 const startingLives = 5;
 const random = (low, high) => low + Math.random() * (high - low);
 let width, height, audio;
 let muted = true;
-let state = 'ready';
+let state = 'ready', mode = 'arcade', slowUntil = 0, wave = 1;
 let score = 0, streak = 0, lives = startingLives, remaining = duration;
 let elapsed = 0, spawnIn = 0, lastPop = -100, lastFrame = 0, animation = 0;
 let best = 0;
@@ -157,7 +180,7 @@ function resize() {
   const previousWidth = width, previousHeight = height;
   width = compact.matches ? 600 : 960;
   height = compact.matches ? 720 : 600;
-  for (const item of [...balloons, ...particles, ...floating]) {
+  for (const item of [...balloons, ...particles, ...floating, ...rings]) {
     item.x *= width / previousWidth;
     item.y *= height / previousHeight;
   }
@@ -204,8 +227,9 @@ function drawBalloon(balloon) {
     ctx.font = `900 ${r * 1.08}px system-ui`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = kind === 'gold' ? '#643911' : '#fff2aa';
-    ctx.fillText(kind === 'gold' ? '★' : 'ϟ', 0, r * .1);
+    const {ink, mark} = specials[kind];
+    ctx.fillStyle = ink;
+    ctx.fillText(mark, 0, r * .1);
   }
   ctx.restore();
 }
@@ -224,6 +248,14 @@ function render() {
     }
   }
   balloons.forEach(drawBalloon);
+  for (const ring of rings) {
+    ctx.globalAlpha = ring.life / .42;
+    ctx.strokeStyle = ring.color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   for (const particle of particles) {
     ctx.globalAlpha = Math.min(1, particle.life * 2.5);
     ctx.fillStyle = particle.color;
@@ -241,11 +273,15 @@ function render() {
 
 function spawn(lane, y = height + 58, regular = false) {
   const roll = regular ? 1 : Math.random();
-  const kind = roll < .13 ? 'gold' : roll < .27 && elapsed > 6 ? 'storm' : 'regular';
-  const palette = kind === 'gold' ? gold : kind === 'storm' ? storm : colors[Math.floor(random(0, colors.length))];
+  let kind = 'regular';
+  if (roll < .13) kind = 'gold';
+  else if (roll < .21 && elapsed > 6) kind = 'frost';
+  else if (mode === 'arcade' && elapsed > 6 && roll < .27 && lives < startingLives) kind = 'heart';
+  else if (mode === 'arcade' && elapsed > 8 && roll < .39) kind = 'storm';
+  const palette = specials[kind]?.palette ?? colors[Math.floor(random(0, colors.length))];
   balloons.push({
     lane, x: (lane + .5) * width / laneCount, y, kind, palette,
-    radius: random(30, 41), velocity: random(61, 97) + elapsed * 1.05,
+    radius: random(32, 44), velocity: random(61, 95) + (mode === 'arcade' ? elapsed : 0) * 1.15,
     phase: random(0, 7), drift: random(10, 23)
   });
 }
@@ -253,6 +289,7 @@ function spawn(lane, y = height + 58, regular = false) {
 function emitPop(balloon, text, textColor) {
   const x = balloonPosition(balloon);
   floating.push({text, x, y: balloon.y, life: .72, color: textColor});
+  if (!reducedMotion) rings.push({x, y: balloon.y, radius: balloon.radius * .5, life: .42, color: balloon.palette[0]});
   for (let i = 0; i < (reducedMotion ? 4 : 26); i++) {
     const angle = random(0, Math.PI * 2), speed = random(45, 245);
     particles.push({
@@ -264,10 +301,14 @@ function emitPop(balloon, text, textColor) {
 
 function updateStats() {
   scoreLabel.textContent = score;
-  bestLabel.textContent = Math.max(score, best);
+  bestLabel.textContent = mode === 'arcade' ? Math.max(score, best) : best;
   comboLabel.textContent = '×' + multiplier();
-  livesLabel.textContent = lives;
-  timeLabel.textContent = Math.ceil(remaining) + 's';
+  livesLabel.textContent = mode === 'arcade' ? lives : '∞';
+  timeLabel.textContent = mode === 'arcade' ? Math.ceil(remaining) + 's' : '∞';
+  clock.hidden = mode === 'practice';
+  if (!clock.hidden) clock.value = remaining;
+  const activeEffect = elapsed < slowUntil ? '❄  Slow motion' : mode === 'practice' ? 'Practice' : 'Wave ' + wave;
+  if (effect.textContent !== activeEffect) effect.textContent = activeEffect;
 }
 
 function multiplier() {
@@ -302,7 +343,17 @@ function pop(index) {
     lastPop = elapsed;
     const points = (balloon.kind === 'gold' ? 50 : 10) * multiplier();
     score += points;
-    emitPop(balloon, '+' + points, balloon.kind === 'gold' ? '#fff0a6' : '#fff');
+    let message = '+' + points;
+    if (balloon.kind === 'heart') {
+      const restoresLife = lives < startingLives;
+      lives = Math.min(lives + 1, startingLives);
+      if (restoresLife) message = '+1 life';
+    }
+    if (balloon.kind === 'frost') {
+      slowUntil = elapsed + 4;
+      message = 'Slow motion';
+    }
+    emitPop(balloon, message, balloon.kind === 'gold' ? '#fff0a6' : '#fff');
   }
   updateStats();
   if (!lives) finish();
@@ -313,21 +364,23 @@ function frame(now) {
   const delta = lastFrame ? Math.min(.08, (now - lastFrame) / 1000) : 0;
   lastFrame = now;
   elapsed += delta;
-  remaining = Math.max(0, duration - elapsed);
+  remaining = mode === 'arcade' ? Math.max(0, duration - elapsed) : duration;
+  wave = Math.min(4, 1 + Math.floor(elapsed / 15));
+  const speed = elapsed < slowUntil ? .46 : 1;
   if (elapsed - lastPop >= 2.1) streak = 0;
-  spawnIn -= delta;
+  spawnIn -= delta * speed;
   if (spawnIn <= 0) {
     const freeLanes = Array.from({length: laneCount}, (_, lane) => lane)
       .filter(lane => !balloons.some(balloon => balloon.lane === lane && balloon.y > height - 125));
     if (freeLanes.length) spawn(freeLanes[Math.floor(Math.random() * freeLanes.length)]);
-    spawnIn = Math.max(.35, .92 - elapsed * .009);
+    spawnIn = mode === 'practice' ? 1 : Math.max(.34, .88 - elapsed * .009);
   }
   for (let i = balloons.length - 1; i >= 0; i--) {
     const balloon = balloons[i];
-    balloon.y -= balloon.velocity * delta;
+    balloon.y -= balloon.velocity * delta * speed;
     if (balloon.y < -balloon.radius * 2.4) {
       balloons.splice(i, 1);
-      if (balloon.kind === 'regular') {
+      if (mode === 'arcade' && balloon.kind === 'regular') {
         lives = Math.max(0, lives - 1);
         streak = 0;
       }
@@ -349,6 +402,11 @@ function frame(now) {
     floating[i].y -= delta * 52;
     if (floating[i].life <= 0) floating.splice(i, 1);
   }
+  for (let i = rings.length - 1; i >= 0; i--) {
+    rings[i].life -= delta;
+    rings[i].radius += delta * 155;
+    if (rings[i].life <= 0) rings.splice(i, 1);
+  }
   updateStats();
   render();
   if (!lives || !remaining) finish();
@@ -360,16 +418,20 @@ function showPanel(title, message, buttonText) {
   get('round-message').textContent = message;
   play.textContent = buttonText;
   pause.hidden = true;
+  effect.hidden = true;
+  modePicker.hidden = state === 'paused';
+  endRound.hidden = state !== 'paused';
   overlay.hidden = false;
 }
 
 function startOrResume() {
   if (state !== 'paused') {
-    score = streak = elapsed = 0;
+    score = streak = elapsed = slowUntil = 0;
+    wave = 1;
     lastPop = -100;
     remaining = duration;
     lives = startingLives;
-    balloons.length = particles.length = floating.length = 0;
+    balloons.length = particles.length = floating.length = rings.length = 0;
     spawn(1, height * .69, true);
     spawn(3, height * .83, true);
     spawnIn = .48;
@@ -378,6 +440,7 @@ function startOrResume() {
   lastFrame = 0;
   overlay.hidden = true;
   pause.hidden = false;
+  effect.hidden = false;
   board.focus({preventScroll:true});
   updateStats();
   animation = requestAnimationFrame(frame);
@@ -391,20 +454,23 @@ function pauseRound(focusButton) {
   if (focusButton) play.focus();
 }
 
-function finish() {
+function finish(ended = false) {
   state = 'finished';
   cancelAnimationFrame(animation);
-  const isRecord = score > best;
-  best = Math.max(best, score);
-  try { localStorage.setItem('zohan-balloon-best', String(best)); } catch {}
+  const isRecord = mode === 'arcade' && score > best;
+  if (isRecord) {
+    best = score;
+    try { localStorage.setItem('zohan-balloon-best', String(best)); } catch {}
+  }
   updateStats();
-  showPanel(isRecord ? 'New high score!' : remaining ? 'Out of lives' : 'Time’s up!',
-    `You scored ${score} points. Personal best: ${best}.`, 'Play again');
+  const title = isRecord ? 'New high score!' : ended ? 'Round ended' : remaining ? 'Out of lives' : 'Time’s up!';
+  const summary = mode === 'arcade' ? `You scored ${score} points. Personal best: ${best}.` : `Practice score: ${score}.`;
+  showPanel(title, summary, 'Play again');
   play.focus();
 }
 
 board.addEventListener('pointerdown', event => {
-  if (!event.isPrimary || event.button !== 0 || state !== 'running') return;
+  if (event.button !== 0 || state !== 'running') return;
   const bounds = board.getBoundingClientRect();
   const x = (event.clientX - bounds.left) * width / bounds.width;
   const y = (event.clientY - bounds.top) * height / bounds.height;
@@ -427,8 +493,21 @@ board.addEventListener('keydown', event => {
   });
   pop(target);
 });
+modeButtons.forEach(button => button.addEventListener('click', () => {
+  mode = button.dataset.mode;
+  modeButtons.forEach(option => option.setAttribute('aria-pressed', String(option === button)));
+  const practice = mode === 'practice';
+  score = streak = 0;
+  remaining = duration;
+  lives = startingLives;
+  updateStats();
+  showPanel(practice ? 'Practice your pops' : 'Ready to pop?',
+    practice ? 'Take your time. Practice has no timer, lives, or storm balloons.' :
+      'Pop balloons before they float away. Grab power-ups and avoid storm balloons.', 'Play');
+}));
 play.addEventListener('click', startOrResume);
 pause.addEventListener('click', () => pauseRound(true));
+endRound.addEventListener('click', () => finish(true));
 document.addEventListener('visibilitychange', () => { if (document.hidden) pauseRound(false); });
 sound.addEventListener('click', async () => {
   muted = !muted;
