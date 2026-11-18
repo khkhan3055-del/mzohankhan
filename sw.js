@@ -1,10 +1,11 @@
 const cachePrefix = 'zohans-world-';
-const cacheName = cachePrefix + 'v6';
+const cacheName = cachePrefix + 'v7';
 const pages = new Map([
   ['/', '/'],
   ['/index.html', '/'],
   ['/games.html', '/games.html'],
   ['/balloon-pop.html', '/balloon-pop.html'],
+  ['/balloon-duel.html', '/balloon-duel.html'],
   ['/photo-booth.html', '/photo-booth.html'],
   ['/runner.html', '/runner.html'],
   ['/characters.html', '/characters.html']

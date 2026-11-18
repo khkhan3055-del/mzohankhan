@@ -1,6 +1,7 @@
 const { createServer } = require('node:http');
 const { readFileSync, readdirSync } = require('node:fs');
 const { join } = require('node:path');
+const { handleDuel } = require('./balloon-duel.cjs');
 
 const home = readFileSync(join(__dirname, 'index.html'));
 const games = readFileSync(join(__dirname, 'games.html'));
@@ -8,7 +9,8 @@ const booth = readFileSync(join(__dirname, 'photo-booth.html'));
 const runner = readFileSync(join(__dirname, 'runner.html'));
 const characters = readFileSync(join(__dirname, 'characters.html'));
 const balloonPop = readFileSync(join(__dirname, 'balloon-pop.html'));
-const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner], ['/characters.html', characters], ['/balloon-pop.html', balloonPop]]);
+const balloonDuel = readFileSync(join(__dirname, 'balloon-duel.html'));
+const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner], ['/characters.html', characters], ['/balloon-pop.html', balloonPop], ['/balloon-duel.html', balloonDuel]]);
 const photos = new Map(
   readdirSync(join(__dirname, 'photos'))
     .filter(name => name.endsWith('.jpg'))
@@ -25,11 +27,15 @@ const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '0.0.0.0';
 
 createServer((request, response) => {
+  const path = request.url.split('?')[0];
+  if (path === '/api/duel' || path.startsWith('/api/duel/')) {
+    void handleDuel(request, response, path);
+    return;
+  }
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     response.writeHead(405, { Allow: 'GET, HEAD' }).end();
     return;
   }
-  const path = request.url.split('?')[0];
   const photo = photos.get(path);
   const appFile = appFiles.get(path);
   const body = photo ?? appFile?.body ?? pages.get(path);
