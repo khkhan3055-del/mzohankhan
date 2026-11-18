@@ -52,11 +52,27 @@ function player(photo) {
   return {token:randomBytes(24).toString('base64url'), photo, hits:new Set(), score:0, ready:false};
 }
 
+function createLineup() {
+  const lineup = [];
+  const count = Math.ceil(roundLength / balloonInterval);
+  while (lineup.length < count) {
+    const remaining = Math.min(10, count - lineup.length);
+    const pairs = Math.floor(remaining / 3);
+    const block = Array.from({length:remaining}, (_, i) => i < pairs * 2 ? i % 2 : 2 + (i - pairs * 2) % 4);
+    for (let i = block.length - 1; i > 0; i--) {
+      const j = randomInt(i + 1);
+      [block[i], block[j]] = [block[j], block[i]];
+    }
+    lineup.push(...block.slice(0, count - lineup.length));
+  }
+  return lineup;
+}
+
 function snapshot(room, index) {
   const opponent = room.players[1 - index];
   return {
     code:room.code, start:room.start, now:Date.now(), round:room.round,
-    duration:roundLength, interval:balloonInterval, flight:flightTime,
+    duration:roundLength, interval:balloonInterval, flight:flightTime, lineup:room.lineup ?? [],
     connected:Boolean(opponent), ready:room.players.map(member => member.ready), index,
     scores:room.players.map(member => member.score)
   };
@@ -115,6 +131,7 @@ async function handleDuel(request, response, path) {
           member.score = 0;
           member.ready = false;
         }
+        room.lineup = createLineup();
         room.round++;
         room.start = now + 3500;
         room.expires = now + roomLifetime;
@@ -126,14 +143,19 @@ async function handleDuel(request, response, path) {
       const age = Date.now() - room.start - balloon * balloonInterval;
       const member = room.players[index];
       if (!room.start || round !== room.round || !Number.isSafeInteger(balloon) || balloon < 0 ||
-          Date.now() > room.start + roundLength + 350 || age < -120 || age > flightTime + 350) {
+          balloon >= room.lineup.length || Date.now() > room.start + roundLength + 350 || age < -120 || age > flightTime + 350) {
         return send(response, 409, {error:'That balloon is out of play.'});
       }
-      if (!member.hits.has(balloon)) {
-        member.hits.add(balloon);
-        member.score += balloon % 7 === 6 ? 3 : 1;
-      }
-      return send(response, 200, snapshot(room, index));
+      const target = room.lineup[balloon];
+      const isOpponent = target === 1 - index;
+      const points = isOpponent ? (balloon % 7 === 6 ? 3 : 1) : 0;
+      const alreadyPopped = member.hits.has(balloon);
+      member.hits.add(balloon);
+      if (!alreadyPopped) member.score += points;
+      return send(response, 200, {
+        ...snapshot(room, index),
+        pop: {points:alreadyPopped ? 0 : points, kind:isOpponent ? 'friend' : target === index ? 'you' : 'cartoon'}
+      });
     }
     return send(response, 405, {error:'Method not allowed.'});
   } catch (error) {

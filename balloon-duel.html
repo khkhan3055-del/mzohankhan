@@ -41,6 +41,8 @@ button.primary{background:var(--mint);color:#173342;border-color:var(--mint)}
 .room-bar strong{letter-spacing:.12em;color:var(--mint)}
 .scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch}
 .scoreboard>div{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:#1e2144;padding:8px 12px;border-radius:10px}
+.scoreboard span{display:flex;align-items:center;gap:8px}
+.scoreboard img{width:34px;height:34px;border:1px solid #c2acd9;border-radius:50%;object-fit:cover}
 .scoreboard strong{font-size:clamp(1.25rem,5vw,1.8rem);font-variant-numeric:tabular-nums}
 .scoreboard .time{justify-content:center;min-width:60px;color:var(--mint)}
 .arena{position:relative;margin-top:10px;overflow:hidden;background:#382956;border:1px solid #8b74b1;border-radius:17px}
@@ -56,7 +58,7 @@ canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none}
 <header><a href="/balloon-pop.html">← Balloon Pop</a></header>
 <main>
 <h1>Photo Duel</h1>
-<p>Two players. Pop balloons with your opponent’s photo before the 45-second round ends.</p>
+<p>Find your friend’s photo among your own balloons and cartoon characters. You have 45 seconds.</p>
 <div class="setup" id="setup">
 <section class="panel" aria-labelledby="photo-title">
 <h2 id="photo-title">Your photo</h2>
@@ -86,12 +88,12 @@ canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none}
 <div class="actions"><button type="button" id="copy">Copy invite</button><button type="button" id="leave">Leave</button></div>
 </div>
 <div class="scoreboard" aria-label="Duel scores">
-<div><span>You</span><strong id="mine">0</strong></div>
+<div><span><img id="my-avatar" alt="">You</span><strong id="mine">0</strong></div>
 <div class="time"><strong id="time">45s</strong></div>
-<div><span>Friend</span><strong id="theirs">0</strong></div>
+<div><span><img id="friend-avatar" alt="" hidden>Friend</span><strong id="theirs">0</strong></div>
 </div>
 <div class="arena">
-<canvas id="board" width="960" height="600" tabindex="0" aria-label="Photo balloons. Use keys 1 through 5 to pop a balloon in that lane."></canvas>
+<canvas id="board" width="960" height="600" tabindex="0" aria-label="Mixed photo and cartoon balloons. Use keys 1 through 5 to pop a balloon in that lane."></canvas>
 <div class="arena-overlay" id="lobby">
 <div class="panel">
 <h2 id="lobby-title">Waiting for your friend</h2>
@@ -101,7 +103,7 @@ canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none}
 </div>
 </div>
 </div>
-<p>Tap or click balloons, or use keys <strong>1–5</strong>. Gold balloons are worth 3 points.</p>
+<p>Pop your friend’s balloons for points. A gold star on their balloon is worth 3. Tap, click, or use keys <strong>1–5</strong>.</p>
 </section>
 <p id="status" role="status"></p>
 </main>
@@ -112,6 +114,7 @@ const create = get('create'), join = get('join'), codeInput = get('room-code'), 
 const ready = get('ready'), lobby = get('lobby'), board = get('board'), context = board.getContext('2d');
 const small = matchMedia('(max-width: 580px)');
 const palette = ['#fd7eb9','#7cdeff','#bc98ff','#9dffce','#ffa579'];
+const cartoons = ['🦊', '🤖', '🐱', '👽'];
 const opponent = new Image();
 const bursts = [];
 const consumed = new Set();
@@ -120,7 +123,9 @@ const initialCode = new URL(location.href).searchParams.get('room');
 if (/^[A-Z2-9]{6}$/.test(initialCode ?? '')) codeInput.value = initialCode;
 let cameraStream, photo, membership, snapshot, photoRequested, loading = false, readyPending = false;
 let clockDelta = 0, animation = 0, pollTimer = 0, currentRound = 0, lastSnapshotTime = 0;
-let width, height, backdrop, targets = [];
+let width, height, targets = [];
+const backdrop = document.createElement('canvas');
+const sky = backdrop.getContext('2d');
 
 function updateEntryButtons() {
   create.disabled = join.disabled = !photo || loading;
@@ -213,6 +218,7 @@ async function enter(code) {
     get('setup').hidden = true;
     get('room').hidden = false;
     get('code').textContent = membership.code;
+    get('my-avatar').src = preview.src;
     status.textContent = '';
     resize();
     animation = requestAnimationFrame(draw);
@@ -278,6 +284,11 @@ async function poll() {
         if (membership === session && image.photo) {
           opponent.src = 'data:image/jpeg;base64,' + image.photo;
           await opponent.decode();
+          if (membership === session) {
+            const avatar = get('friend-avatar');
+            avatar.src = opponent.src;
+            avatar.hidden = false;
+          }
         }
       } catch {
         if (membership === session) photoRequested = false;
@@ -331,6 +342,8 @@ function leaveRoom() {
   pending.clear();
   bursts.length = 0;
   opponent.removeAttribute('src');
+  get('friend-avatar').hidden = true;
+  get('friend-avatar').removeAttribute('src');
   targets = [];
   cancelAnimationFrame(animation);
   clearTimeout(pollTimer);
@@ -357,18 +370,70 @@ get('leave').onclick = async () => {
   }
 };
 
+function oval(context, x, y, rx, ry, fill) {
+  context.beginPath();
+  context.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+  context.fillStyle = fill;
+  context.fill();
+}
+
+function drawBackdrop() {
+  const gradient = sky.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, '#201940');
+  gradient.addColorStop(.55, '#684789');
+  gradient.addColorStop(1, '#fa9c9a');
+  sky.fillStyle = gradient;
+  sky.fillRect(0, 0, width, height);
+
+  const sunX = width * .76, sunY = height * .27, radius = width * .104;
+  const glow = sky.createRadialGradient(sunX, sunY, radius * .55, sunX, sunY, radius * 2.6);
+  glow.addColorStop(0, '#ffb6d87a');
+  glow.addColorStop(1, '#ffb6d800');
+  oval(sky, sunX, sunY, radius * 2.6, radius * 2.6, glow);
+  const disc = sky.createLinearGradient(0, sunY - radius, 0, sunY + radius);
+  disc.addColorStop(0, '#fff0b8');
+  disc.addColorStop(1, '#ff93b4');
+  oval(sky, sunX, sunY, radius, radius, disc);
+  for (let i = 0; i < 38; i++) {
+    oval(sky, ((i * 127 + 29) % 997) / 997 * width, ((i * 47) % 173) / 173 * height * .62,
+      i % 7 === 0 ? 2 : 1, i % 7 === 0 ? 2 : 1, i % 3 ? '#ffe9f699' : '#ffe3b9');
+  }
+
+  for (const [x, y, scale] of [[.12,.29,.85],[.47,.18,.55],[.81,.48,.73],[.29,.56,.62]]) {
+    sky.save();
+    sky.translate(x * width, y * height);
+    sky.scale(scale, scale);
+    oval(sky, 0, 0, 64, 10, '#ffdeec3b');
+    oval(sky, -17, -6, 32, 13, '#ffdeec3b');
+    oval(sky, 23, -7, 22, 15, '#ffdeec3b');
+    sky.restore();
+  }
+
+  for (const [fill, baseline, amplitude, phase] of [
+    ['#814d87', .84, .105, .5], ['#593b74', .91, .075, 2], ['#342c59', .99, .068, 3.7]
+  ]) {
+    sky.beginPath();
+    sky.moveTo(0, height);
+    for (let x = 0; x <= width; x += 8) {
+      const peak = (Math.sin(x / width * 8 + phase) + Math.sin(x / width * 17 + phase) * .35) * amplitude;
+      sky.lineTo(x, (baseline + peak) * height);
+    }
+    sky.lineTo(width, height);
+    sky.closePath();
+    sky.fillStyle = fill;
+    sky.fill();
+  }
+}
+
 function resize() {
-  width = board.width = small.matches ? 600 : 960;
-  height = board.height = small.matches ? 720 : 600;
-  backdrop = context.createLinearGradient(0, 0, 0, height);
-  backdrop.addColorStop(0, '#231a50');
-  backdrop.addColorStop(.63, '#654285');
-  backdrop.addColorStop(1, '#e992a0');
+  width = board.width = backdrop.width = small.matches ? 600 : 960;
+  height = board.height = backdrop.height = small.matches ? 720 : 600;
+  drawBackdrop();
 }
 small.addEventListener('change', resize);
 
 function drawTarget(target) {
-  const {x,y,r,bonus,id} = target;
+  const {x,y,r,bonus,id,owner} = target;
   const color = bonus ? '#ffd764' : palette[id % palette.length];
   context.save();
   context.translate(x,y);
@@ -389,17 +454,25 @@ function drawTarget(target) {
   context.shadowBlur=bonus?23:9;
   context.fill();
   context.shadowBlur=0;
-  if (opponent.complete && opponent.naturalWidth) {
+  const image = owner === snapshot.index ? preview : opponent;
+  if (owner < 2 && image.complete && image.naturalWidth) {
     context.save();
     context.beginPath();
     context.arc(0,-r*.02,r*.77,0,Math.PI*2);
     context.clip();
-    context.drawImage(opponent,-r*.78,-r*.8,r*1.56,r*1.56);
+    context.drawImage(image,-r*.78,-r*.8,r*1.56,r*1.56);
     context.restore();
+  } else if (owner >= 2) {
+    oval(context, 0, -r * .02, r * .76, r * .76, '#24203b69');
+    context.font = `${r * 1.13}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(cartoons[owner - 2], 0, -r * .02);
   }
   if (bonus) {
     context.font='900 28px system-ui';
     context.textAlign='center';
+    context.textBaseline='alphabetic';
     context.fillStyle='#fff397';
     context.fillText('★',0,-r*.84);
   }
@@ -408,12 +481,7 @@ function drawTarget(target) {
 
 function draw(now) {
   if (!membership) return;
-  context.fillStyle=backdrop;
-  context.fillRect(0,0,width,height);
-  for (let i=0;i<45;i++) {
-    context.fillStyle=i%4?'#ffeafa70':'#fff1ad';
-    context.fillRect((i*137+91)%width,(i*53+22)%(height*.85),i%4?2:3,i%4?2:3);
-  }
+  context.drawImage(backdrop, 0, 0);
   const data=snapshot;
   const age=data?.start ? Date.now()+clockDelta-data.start : -Infinity;
   const playing=age>=0 && age<data.duration;
@@ -424,7 +492,7 @@ function draw(now) {
     const finished=Boolean(data.start);
     const mine=data.scores[data.index], theirs=data.scores[1-data.index];
     const title=finished ? mine===theirs?'Tie game':mine>theirs?'You won!':'Your friend won!' : 'Both players are here';
-    showLobby(title, finished ? `Final score: ${mine}–${theirs}.` : 'Both players tap Ready to begin.',
+    showLobby(title, finished ? `Final score: ${mine}–${theirs}.` : 'Both players tap Ready. Only your friend’s photo scores.',
       data.ready[data.index]?'Waiting for friend':finished?'Ready for rematch':'Ready', data.ready[data.index]);
   } else if (!playing) {
     showLobby('Get ready','');
@@ -438,7 +506,7 @@ function draw(now) {
   targets=[];
   if (playing) {
     const earliest=Math.max(0,Math.ceil((age-data.flight)/data.interval));
-    const latest=Math.floor(age/data.interval);
+    const latest=Math.min(data.lineup.length - 1, Math.floor(age/data.interval));
     for (let id=earliest;id<=latest;id++) {
       if (consumed.has(id) || pending.has(id)) continue;
       const t=(age-id*data.interval)/data.flight;
@@ -446,7 +514,8 @@ function draw(now) {
       const r=small.matches?40:49;
       const x=(lane+.5)*width/5+Math.sin(t*7+id)*12;
       const y=height+r-(height+r*2)*t;
-      const target={id,lane,x,y,r,bonus:id%7===6};
+      const owner=data.lineup[id];
+      const target={id,lane,x,y,r,owner,bonus:owner<2 && id%7===6};
       targets.push(target);
       drawTarget(target);
     }
@@ -467,6 +536,11 @@ function draw(now) {
       const radius=14+fraction*68;
       context.fillRect(burst.x+Math.cos(angle)*radius,burst.y+Math.sin(angle)*radius,6,6);
     }
+    context.fillStyle=burst.correct ? '#fff8b6' : '#f5e7ff';
+    context.textAlign='center';
+    context.textBaseline='middle';
+    context.font='800 22px system-ui';
+    context.fillText(burst.label, burst.x, burst.y - 45 * fraction);
     context.globalAlpha=1;
   }
   animation=requestAnimationFrame(draw);
@@ -476,7 +550,9 @@ async function pop(target) {
   const session=membership, round=currentRound;
   if (!session || !target || pending.has(target.id) || consumed.has(target.id)) return;
   pending.add(target.id);
-  bursts.push({x:target.x,y:target.y,start:performance.now()});
+  const correct = target.owner === 1 - snapshot.index;
+  const label = correct ? (target.bonus ? '+3' : '+1') : target.owner === snapshot.index ? 'Your balloon' : 'Cartoon';
+  bursts.push({x:target.x,y:target.y,start:performance.now(),correct,label});
   const before=Date.now();
   try {
     const data=await request('/'+session.code+'/pop',{balloon:target.id,round},session);
