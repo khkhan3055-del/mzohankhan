@@ -20,6 +20,7 @@ const photos = new Map(
 );
 const appFiles = new Map([
   ['/colorful.css', 'text/css; charset=utf-8'],
+  ['/playful.css', 'text/css; charset=utf-8'],
   ['/manifest.webmanifest', 'application/manifest+json'],
   ['/pwa.js', 'text/javascript; charset=utf-8'],
   ['/sw.js', 'text/javascript; charset=utf-8'],

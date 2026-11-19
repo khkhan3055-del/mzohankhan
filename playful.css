@@ -1,0 +1,219 @@
+:root {
+  --display: "Nunito", system-ui, sans-serif;
+  --text: "DM Sans", system-ui, sans-serif;
+  --ink: #27172e;
+  --muted: #695970;
+  --panel: #fff;
+  --line: #eadced;
+  --gold: #2ae476;
+  --amber: #2ae476;
+  --bright: #650d66;
+  --mint: #2ae476;
+  color: var(--ink);
+  background: #fff;
+}
+body {background: #fff; color: var(--ink)}
+h1, h2, h3, .site-logo, .world-links strong, .player-head strong, .sega-art strong, .game-picker strong {
+  font-family: var(--display);
+  font-weight: 1000;
+  letter-spacing: -.035em;
+}
+h1 {font-size: clamp(2.4rem, 5.6vw, 4.7rem); line-height: 1.06; color: #351039}
+h2, h3 {color: #351039}
+.site-head {
+  background: #650d66;
+  border: 0;
+  color: #fff;
+}
+.site-head .site-inner {padding: 24px 0; gap: 18px}
+.site-logo {color: #fff; font-size: 1.5rem; font-weight: 1000; letter-spacing: -.06em}
+.site-logo span {border-color: #fff4; background-color: #fff; box-shadow: none; border-radius: 50%; width: 44px; height: 44px}
+.site-head .site-nav {gap: 4px}
+.site-head .site-nav a {color: #fff; border-radius: 0; padding: 8px 10px; font-size: .85rem; font-weight: 600}
+.site-head .site-nav a:hover {background: #ffffff12; color: #fff}
+.site-head .site-nav a[aria-current="page"] {background: transparent; color: #fff; box-shadow: inset 0 -3px #f4db6b; border-radius: 0}
+.site-head .site-nav a[href="/photo-booth.html"]:last-child {background: #2ae476}
+.site-foot {background: #650d66; border: 0; padding: 34px 20px; color: #fff}
+.site-foot .site-logo {color: #fff}
+.action-link, button.primary, #play, #start, .download, .actions #open {
+  background: #2ae476;
+  color: #17251b;
+  border: 0;
+  border-radius: 999px;
+  padding: 13px 22px;
+  box-shadow: none;
+  font-weight: 800;
+  font-size: .92rem;
+}
+.action-link:hover, button.primary:hover, #play:hover, #start:hover, .download:hover {background: #52ec91; box-shadow: none}
+:focus-visible, .upload:focus-within {outline-color: #b439aa}
+main {padding-top: 38px}
+.page-home main {padding-top: 0}
+.page-home .home-hero {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  align-items: center;
+  min-height: 0;
+  position: relative;
+  isolation: isolate;
+  padding: 50px 24px 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: linear-gradient(#650d66 0 76%, #fff 76% 100%);
+}
+.page-home .home-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 24%;
+  z-index: -1;
+  opacity: .24;
+  background:
+    repeating-linear-gradient(40deg, transparent 0 90px, #3d0340 91px 93px, transparent 94px 180px),
+    repeating-linear-gradient(-40deg, transparent 0 130px, #3d0340 131px 133px, transparent 134px 250px);
+  mask-image: linear-gradient(transparent, #0009 20%, #0009 90%, transparent);
+}
+.page-home .home-hero::after {
+  content: "";
+  position: absolute;
+  top: 76%;
+  height: 22px;
+  left: 0;
+  right: 0;
+  background: radial-gradient(ellipse 23px 18px at 23px 0, #650d66 98%, transparent 100%) 0 0 / 46px 22px repeat-x;
+  z-index: -1;
+}
+.hero-copy {text-align: center; max-width: 1020px; padding: 0 12px; z-index: 1}
+.page-home .home-hero h1 {
+  color: #fff;
+  max-width: 100%;
+  font: 1000 clamp(2.2rem, 3.8vw, 3.25rem)/1.08 var(--display);
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+  margin: 0 0 18px;
+}
+.page-home .hero-copy p {max-width: 62ch; margin: 0 auto; font-size: 1rem; line-height: 1.6; color: #fae6fc}
+.hero-actions {display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 20px; margin-top: 26px}
+.hero-secondary {color: #fff; font-size: .92rem; font-weight: 700; text-decoration: none; padding: 12px 18px; border: 1px solid #ffffff65; border-radius: 999px; background: #ffffff0d}
+.hero-secondary:hover {background: #ffffff20}
+.hero-secondary span {margin-left: 9px; color: #2ae476}
+.hero-scene {
+  position: relative;
+  width: min(940px, 100%);
+  height: clamp(300px, 42vw, 550px);
+  margin: 28px auto 0;
+  mask-image:
+    radial-gradient(ellipse 28% 45% at 28% 50%, #000 98%, transparent 100%),
+    radial-gradient(ellipse 30% 50% at 51% 50%, #000 98%, transparent 100%),
+    radial-gradient(ellipse 25% 43% at 75% 50%, #000 98%, transparent 100%);
+}
+.hero-scene img {width: 100%; height: 100%; display: block; object-fit: cover; object-position: center 43%}
+.hero-star {position: absolute; color: #ffe357; font-size: 78px; left: max(25px, calc(50% - 510px)); top: 255px; transform: rotate(-17deg); line-height: 1; text-shadow: -3px -3px #b680b5, 3px 3px #b680b5}
+.hero-spark {position: absolute; color: #ffbd79; font-size: 105px; right: max(20px, calc(50% - 520px)); top: 290px; transform: rotate(13deg); line-height: 1}
+.home-section {padding-top: 55px}
+.home-section h2 {font-size: clamp(2rem, 4vw, 3rem); text-transform: uppercase; margin-bottom: 18px}
+.world-links {gap: 20px; margin-top: 20px; background: #faf7fa; padding: 26px; border-radius: 32px}
+.world-links a {
+  border: 0;
+  border-top: 0;
+  background: #fff1c4;
+  color: #351039;
+  border-radius: 24px;
+  padding: 28px 23px;
+  box-shadow: none;
+}
+.world-links a:nth-child(3n+2) {background: #f0def7}
+.world-links a:nth-child(3n) {background: #d6f5df}
+.world-links a:nth-child(4) {background: #ffe0e5}
+.world-links a:hover {background: #ede3f4; box-shadow: none}
+.world-links span {color: #650d66; font-size: 2.2rem}
+.world-links strong {font-size: 1.5rem}
+.world-links small {color: #6c5575}
+.home-dance details {border: 0; background: #f6eef7; border-radius: 24px}
+.home-dance summary {padding: 22px; color: #650d66}
+.home-dance summary span {background: #2ae476; border-radius: 999px; color: #203129}
+.dance-stage {background: #f2e0f6}
+.album-heading {border-bottom: 2px dashed #e2cde6; padding-bottom: 22px}
+.album .card {border: 0; border-radius: 23px; background: #f8f1fa; box-shadow: none}
+.album .card:hover {box-shadow: 0 8px 22px #65106612; border: 0}
+.album .card span {color: #512254}
+.album-jump a {border: 1px solid #dfc4e4; border-radius: 999px; color: #650d66; background: #fff}
+.album-jump a:hover {background: #f5e7f7}
+.album-collection h3 {color: #650d66}
+.arcade-feature {border: 0; border-radius: 32px; box-shadow: none}
+.sega-classics {background: #f6f0f8; border: 0; border-radius: 30px}
+.game-tabs button, .filters button {background: #f7f1fa; border: 0; color: #66366b; border-radius: 999px; padding: 10px 16px}
+.game-tabs button[aria-pressed="true"], .filters button[aria-pressed="true"] {background: #650d66; border-color: #650d66; color: #fff; box-shadow: none}
+body.page-games main section[aria-labelledby="title"] {border: 0; background: #f7f3f8; border-radius: 28px}
+.profile {border: 0; background: #faf6fb; border-radius: 26px; box-shadow: none}
+.profile-copy h2 {color: #4e1956; font-size: 1.5rem}
+.profile-copy p:first-child {color: #895c90}
+input:not([type="range"]):not([type="checkbox"]):not([type="file"]), select {border: 1px solid #d8c4dd; border-radius: 14px}
+.character-search input {min-height: 48px}
+.booth-controls {background: #f8f1fa; border: 0; border-radius: 28px; box-shadow: none}
+.booth-controls h2 {color: #650d66}
+.frame {border-radius: 28px; box-shadow: none}
+.actions button, .sticker-picker button, .mask-picker button {border: 0; border-radius: 16px; background: #ecdaf0; color: #5c2464}
+.mask-picker button[aria-pressed="true"] {background: #650d66; color: #fff}
+#sticker-tools legend {font-family: var(--display); font-weight: 1000}
+.garage-bar, .race {border: 0; border-radius: 28px; box-shadow: none; background: #f5eaf8}
+.race .hud, .race .controls {background: #f1e1f5; color: #57235f}
+.cast li {border: 0; background: #f7eefa; color: #63376e}
+h1 em {color: #9e358f}
+.stat, .scoreboard > div {background: #f8f0fa; border: 0; border-radius: 18px}
+.stat strong, .scoreboard strong {color: #650d66}
+.scoreboard .time {background: #d0f8de; color: #235534}
+.panel {background: #fffafef5; border: 0; border-radius: 25px; box-shadow: 0 10px 30px #471b4512}
+.panel h2 {color: #650d66}
+.mode-picker button {border: 0; border-radius: 999px; background: #efe1f4; color: #63376e}
+.mode-picker button[aria-pressed="true"] {background: #650d66; color: #fff}
+.arena {border: 0; border-radius: 28px; box-shadow: none}
+.round-meter, #round-clock {height: 7px}
+#round-clock::-webkit-progress-value, .round-meter::-webkit-progress-value {background: #2ae476}
+#round-clock::-moz-progress-bar, .round-meter::-moz-progress-bar {background: #2ae476}
+#countdown {color: #650d66}
+#effect {border: 0; border-radius: 999px}
+.setup {background: #f8f1fa; border: 0; border-radius: 27px}
+.photo {background: #f0e3f5; border: 1px dashed #b886c0; border-radius: 24px}
+.upload {background: #2ae476; border: 0; border-radius: 999px; color: #203129}
+.player {border: 0; border-radius: 28px; box-shadow: none}
+.player-head {background: #f1e1f6; color: #5b2363}
+.game-picker button {border: 0; border-radius: 24px; box-shadow: none; background: #650d66}
+.game-picker button:nth-child(3n+2) {background: #8f3b8b}
+.game-picker button:nth-child(3n) {background: #327c6a}
+.game-picker button[aria-pressed="true"] {border: 0; outline: 3px solid #2ae476; box-shadow: none}
+.tips section {background: #f8f1fa; border: 0; border-radius: 24px}
+.game-shortcuts a {color: #7e3887}
+@media (max-width: 800px) {
+  .site-head .site-inner {padding: 18px 0; gap: 16px}
+  .hero-star {left: 13px; top: 300px; font-size: 52px}
+  .hero-spark {right: 12px; top: 330px; font-size: 68px}
+  .page-home .home-hero {padding-top: 36px}
+  .hero-copy {padding: 0; max-width: 650px}
+  .page-home .hero-copy p {max-width: 48ch; font-size: .96rem}
+  .world-links {padding: 20px; gap: 14px}
+}
+@media (max-width: 520px) {
+  .site-head .site-inner {width: calc(100% - 24px); gap: 12px}
+  .site-head .site-nav a {font-size: .76rem; padding: 7px 8px}
+  .page-home .home-hero {width: 100%; padding: 34px 16px 0; border-radius: 0; box-shadow: none; background: linear-gradient(#650d66 0 82%, #fff 82% 100%)}
+  .page-home .home-hero::before {bottom: 18%}
+  .page-home .home-hero::after {top: 82%; background-size: 36px 20px}
+  .page-home .home-hero h1 {font-size: 2.25rem; max-width: 13ch; margin: 0 auto 18px}
+  .hero-actions {gap: 10px; margin-top: 22px}
+  .hero-actions a {font-size: .82rem; padding: 11px 15px}
+  .hero-scene {height: 285px; width: calc(100% + 24px); max-width: calc(100vw - 8px); flex-shrink: 0; margin-top: 22px}
+  .hero-star {top: 300px; left: 5px; font-size: 39px}
+  .hero-spark {top: 326px; right: 4px; font-size: 49px}
+  .hero-scene img {object-position: 50% 50%}
+  .home-section {padding-top: 32px}
+  .home-section h2 {font-size: 1.85rem}
+  .world-links {padding: 15px; gap: 12px; border-radius: 25px}
+  .world-links a {padding: 20px 14px; border-radius: 19px; box-shadow: none}
+  .world-links strong {font-size: 1.15rem}
+  .world-links small {font-size: .82rem}
+  .arena, .frame {border-radius: 20px}
+}
