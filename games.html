@@ -62,6 +62,25 @@ radial-gradient(ellipse 32px 40px at 84% 32%,#fff0af,#f177a4 73%,transparent 77%
 radial-gradient(ellipse 37px 46px at 73% 61%,#d1feff,#4dbbe7 73%,transparent 77%),
 radial-gradient(ellipse 26px 33px at 91% 72%,#ffc8fb,#a878f5 73%,transparent 77%),
 linear-gradient(115deg,#251e48 25%,#784c86);background-size:auto;background-position:center}
+.sega-classics{margin:30px 0 34px}.sega-classics>p{max-width:70ch;color:var(--muted)}
+.sega-classics h2{font-size:clamp(2.3rem,6vw,3.8rem);margin:0 0 10px}
+.sega-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.sega-card{border:1px solid #658bc3;border-radius:13px;overflow:hidden;background:#12294c;display:flex;flex-direction:column}
+.sega-art{min-height:145px;padding:17px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;background:radial-gradient(circle at 85% 20%,#fbe07d 0 13%,transparent 13.5%),linear-gradient(140deg,#155dc5,#103562);border-bottom:1px solid #658bc3}
+.sega-art span{font-size:.8rem;font-weight:800;color:#e0edff}
+.sega-art strong{font:800 2.15rem/.95 var(--display);max-width:12ch;text-shadow:0 3px #103464}
+.sega-tails .sega-art,.sega-axe .sega-art{background-color:#a7611f;background-image:linear-gradient(130deg,#935a20,#582a28)}
+.sega-cd .sega-art,.sega-spinball .sega-art{background-image:linear-gradient(140deg,#7b45bb,#24336f)}
+.sega-knuckles .sega-art,.sega-rage .sega-art{background-image:linear-gradient(140deg,#bc3c67,#442557)}
+.sega-beans .sega-art,.sega-ristar .sega-art{background-image:radial-gradient(circle at 80% 25%,#ffe582 0 16%,transparent 16.5%),linear-gradient(140deg,#267e6e,#264968)}
+.sega-ecco .sega-art{background-image:linear-gradient(140deg,#2389aa,#17355c)}
+.sega-copy{padding:15px;display:flex;flex-direction:column;gap:10px;flex:1}
+.sega-copy h3{font:800 1.65rem/1 var(--display);margin:0}
+.sega-copy p{color:var(--muted);margin:0;font-size:.95rem}
+.sega-copy small{color:#ffe2a4;line-height:1.4}
+.sega-copy a{margin-top:auto;padding-top:7px;font-weight:800;color:#b7e8ff}
+@media(max-width:800px){.sega-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.sega-grid{grid-template-columns:1fr}}
 </style>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0b1737">
@@ -73,6 +92,71 @@ linear-gradient(115deg,#251e48 25%,#784c86);background-size:auto;background-posi
 <h1>Games Arcade</h1>
 <section class="arcade-feature" aria-labelledby="super-run"><h2 id="super-run">Super Run</h2><p>Race with Zohan, Zavi, and your own photo runner.</p><a class="action-link" href="runner.html">Play Super Run →</a></section>
 <section class="arcade-feature balloon-feature" aria-labelledby="balloon-pop"><h2 id="balloon-pop">Balloon Pop</h2><p>Chase combos, grab gold stars, and dodge storm balloons.</p><a class="action-link" href="balloon-pop.html">Play Balloon Pop →</a></section>
+<section class="sega-classics" aria-labelledby="sega-title" id="sega-classics">
+<h2 id="sega-title">Sonic &amp; SEGA classics</h2>
+<p>Explore official classic releases. These links open a new tab. Choose a release for your PC or console, then play through its supported app or system.</p>
+<div class="sega-grid">
+<article class="sega-card sega-sonic">
+<div class="sega-art" aria-hidden="true"><span>1991</span><strong>Sonic the Hedgehog</strong></div>
+<div class="sega-copy"><h3>Sonic the Hedgehog</h3><p>Race through the original adventure, from Green Hill to Dr. Eggman’s machines.</p><small>Sonic Origins · purchase required</small>
+<a href="https://asia.sega.com/SonicOrigins/en/" target="_blank" rel="noopener noreferrer">View Sonic Origins ↗</a></div>
+</article>
+<article class="sega-card sega-tails">
+<div class="sega-art" aria-hidden="true"><span>1992</span><strong>Sonic the Hedgehog 2</strong></div>
+<div class="sega-copy"><h3>Sonic the Hedgehog 2</h3><p>Team up with Tails and race through Emerald Hill.</p><small>Sonic Origins · purchase required</small>
+<a href="https://asia.sega.com/SonicOrigins/en/" target="_blank" rel="noopener noreferrer">View Sonic Origins ↗</a></div>
+</article>
+<article class="sega-card sega-cd">
+<div class="sega-art" aria-hidden="true"><span>1993</span><strong>Sonic CD</strong></div>
+<div class="sega-copy"><h3>Sonic CD</h3><p>Travel through time and meet Amy and Metal Sonic.</p><small>Sonic Origins · purchase required</small>
+<a href="https://asia.sega.com/SonicOrigins/en/" target="_blank" rel="noopener noreferrer">View Sonic Origins ↗</a></div>
+</article>
+<article class="sega-card sega-knuckles">
+<div class="sega-art" aria-hidden="true"><span>1994</span><strong>Sonic 3 &amp; Knuckles</strong></div>
+<div class="sega-copy"><h3>Sonic 3 &amp; Knuckles</h3><p>Explore Angel Island with Sonic, Tails, and Knuckles.</p><small>Sonic Origins · purchase required</small>
+<a href="https://asia.sega.com/SonicOrigins/en/" target="_blank" rel="noopener noreferrer">View Sonic Origins ↗</a></div>
+</article>
+<article class="sega-card sega-mania">
+<div class="sega-art" aria-hidden="true"><span>2017</span><strong>Sonic Mania</strong></div>
+<div class="sega-copy"><h3>Sonic Mania</h3><p>A pixel-art Sonic adventure with classic zones and local multiplayer.</p><small>PC · purchase and installation required</small>
+<a href="https://store.steampowered.com/app/584400/Sonic_Mania/" target="_blank" rel="noopener noreferrer">View on Steam ↗</a></div>
+</article>
+<article class="sega-card sega-adventure">
+<div class="sega-art" aria-hidden="true"><span>2001</span><strong>Sonic Adventure 2</strong></div>
+<div class="sega-copy"><h3>Sonic Adventure 2</h3><p>Choose the hero or dark story in Sonic’s 3D adventure.</p><small>PC · purchase and installation required</small>
+<a href="https://store.steampowered.com/app/213610/Sonic_Adventure_2/" target="_blank" rel="noopener noreferrer">View on Steam ↗</a></div>
+</article>
+<article class="sega-card sega-spinball">
+<div class="sega-art" aria-hidden="true"><span>Genesis</span><strong>Sonic Spinball</strong></div>
+<div class="sega-copy"><h3>Sonic Spinball</h3><p>Bounce through Dr. Robotnik’s fortress in a pinball adventure.</p><small>Nintendo Switch · Online + Expansion Pack required</small>
+<a href="https://www.nintendo.com/us/store/products/sega-genesis-nintendo-switch-online-switch/" target="_blank" rel="noopener noreferrer">View Nintendo collection ↗</a></div>
+</article>
+<article class="sega-card sega-beans">
+<div class="sega-art" aria-hidden="true"><span>Genesis</span><strong>Dr. Robotnik’s Mean Bean Machine</strong></div>
+<div class="sega-copy"><h3>Dr. Robotnik’s Mean Bean Machine</h3><p>Match colorful beans in a falling-block puzzle battle.</p><small>Nintendo Switch · Online + Expansion Pack required</small>
+<a href="https://www.nintendo.com/us/store/products/sega-genesis-nintendo-switch-online-switch/" target="_blank" rel="noopener noreferrer">View Nintendo collection ↗</a></div>
+</article>
+<article class="sega-card sega-ristar">
+<div class="sega-art" aria-hidden="true"><span>Genesis</span><strong>Ristar</strong></div>
+<div class="sega-copy"><h3>Ristar</h3><p>Stretch, grab, and swing through a colorful platform adventure.</p><small>Nintendo Switch · Online + Expansion Pack required</small>
+<a href="https://www.nintendo.com/us/store/products/sega-genesis-nintendo-switch-online-switch/" target="_blank" rel="noopener noreferrer">View Nintendo collection ↗</a></div>
+</article>
+<article class="sega-card sega-ecco">
+<div class="sega-art" aria-hidden="true"><span>Genesis</span><strong>Ecco the Dolphin</strong></div>
+<div class="sega-copy"><h3>Ecco the Dolphin</h3><p>Explore an underwater world as Ecco.</p><small>Nintendo Switch · Online + Expansion Pack required</small>
+<a href="https://www.nintendo.com/us/store/products/sega-genesis-nintendo-switch-online-switch/" target="_blank" rel="noopener noreferrer">View Nintendo collection ↗</a></div>
+</article>
+<article class="sega-card sega-rage">
+<div class="sega-art" aria-hidden="true"><span>Genesis</span><strong>Streets of Rage 2</strong></div>
+<div class="sega-copy"><h3>Streets of Rage 2</h3><p>Fight through the city in this classic arcade brawler.</p><small>Nintendo Switch · Online + Expansion Pack required</small>
+<a href="https://www.nintendo.com/us/store/products/sega-genesis-nintendo-switch-online-switch/" target="_blank" rel="noopener noreferrer">View Nintendo collection ↗</a></div>
+</article>
+<article class="sega-card sega-axe">
+<div class="sega-art" aria-hidden="true"><span>Genesis</span><strong>Golden Axe</strong></div>
+<div class="sega-copy"><h3>Golden Axe</h3><p>Set off on a fantasy arcade quest.</p><small>Nintendo Switch · Online + Expansion Pack required</small>
+<a href="https://www.nintendo.com/us/store/products/sega-genesis-nintendo-switch-online-switch/" target="_blank" rel="noopener noreferrer">View Nintendo collection ↗</a></div>
+</article>
+</div></section>
 <nav class="game-tabs" aria-label="Choose a game">
 <button data-game="snake">Snake</button><button data-game="race">Car Racing</button><button data-game="math">Quick Math</button><button data-game="word">Word Builder</button><button data-game="pattern">Pattern Lab</button>
 </nav>
