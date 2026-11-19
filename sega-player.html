@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b1737">
-<title>SEGA Player | Zohan’s World</title>
+<title>Sonic &amp; SEGA Arcade | Zohan’s World</title>
 <link rel="icon" href="/icons/zohan-192.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/zohan-192.png">
@@ -24,6 +24,16 @@ p{color:#d9e7ff}
 .setup{display:flex;flex-wrap:wrap;gap:12px;align-items:end;padding:18px;background:#142b50;border:1px solid #6389c0;border-radius:14px}
 label{display:grid;gap:5px;font-weight:700}
 select,button,input{font:inherit}
+.game-picker{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 10px}
+.game-picker button{text-align:left;min-height:100px;background:linear-gradient(145deg,#245c9f,#1a2a52);border:1px solid #679dce;display:grid;align-content:space-between;gap:10px;padding:14px}
+.game-picker button:nth-child(3n+2){background:linear-gradient(145deg,#7b4679,#302c5b)}
+.game-picker button:nth-child(3n){background:linear-gradient(145deg,#3b7b7c,#203b61)}
+.game-picker button[aria-pressed=true]{border-color:#ffe097;box-shadow:inset 0 0 0 2px #ffe097}
+.game-picker small{color:#c8ecff;font-size:.77rem}
+.game-picker strong{font:800 1.45rem/1 "Barlow Condensed",system-ui,sans-serif}
+.provider{font-size:.85rem;color:#bad1ee}
+details{margin:16px 0}summary{cursor:pointer;color:#c5eaff;font-weight:800}
+@media(max-width:760px){.game-picker{grid-template-columns:repeat(2,minmax(0,1fr))}}
 select,button,.upload{border:1px solid #7a9cc8;padding:10px 14px;border-radius:9px;background:#203e68;color:inherit}
 button,.upload{cursor:pointer;font-weight:800}
 .upload{display:inline-flex;align-items:center;background:#ffe097;color:#1c2d4a;border-color:#ffe097}
@@ -35,6 +45,7 @@ button,.upload{cursor:pointer;font-weight:800}
 #game-name{overflow-wrap:anywhere;max-width:100%}
 .actions{display:flex;flex-wrap:wrap;gap:7px}
 #screen{position:relative;min-height:300px;aspect-ratio:4/3;max-height:78vh}
+.player:fullscreen{display:flex;flex-direction:column;border:0;border-radius:0}.player:fullscreen #screen{flex:1;aspect-ratio:auto;max-height:none;min-height:0}
 iframe{display:block;width:100%;height:100%;border:0}
 #empty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:12px;padding:20px;background:radial-gradient(ellipse,#1b3972,#0c1733)}
 #empty span{display:block;font-size:3rem}
@@ -49,39 +60,58 @@ small{color:#adc4e6}
 <body>
 <header><a href="/games.html">← Zohan’s Arcade</a></header>
 <main>
-<h1>SEGA Player</h1>
-<p>Play a cartridge game here. Choose your own game file for Mega Drive / Genesis, Master System, or Game Gear.</p>
+<h1>Sonic &amp; SEGA Arcade</h1>
+<p>Choose a classic, then press Play Now in the game player.</p>
+<div class="game-picker" id="game-picker" role="group" aria-label="Choose a SEGA game"></div>
+<p class="provider">Games are embedded from RetroGames.cc. Its player may show ads and needs an internet connection.</p>
+<details><summary>Play a game file from your device</summary>
+<p>Choose a Mega Drive / Genesis, Master System, or Game Gear cartridge file.</p>
 <div class="setup">
 <label for="system">Console<select id="system"><option value="auto">Detect from file</option><option value="segaMD">Mega Drive / Genesis</option><option value="segaMS">Master System</option><option value="segaGG">Game Gear</option></select></label>
 <label class="upload">Choose game file<input id="file" type="file" accept=".md,.gen,.bin,.smd,.sms,.gg"></label>
 <small>.md · .gen · .bin · .smd · .sms · .gg — up to 32 MB</small>
 </div>
-<p id="status" role="status">Choose a game file to begin. Internet access is needed to load the player.</p>
+</details>
+<p id="status" role="status">Choose a game above to play here.</p>
 <div class="player" id="player">
-<div class="player-head"><strong id="game-name">Ready for a game</strong><div class="actions"><button type="button" id="retry" hidden>Retry</button><button type="button" id="stop" hidden>Close game</button></div></div>
-<div id="screen"><div id="empty"><span aria-hidden="true">🎮</span><h2>Your classic arcade</h2><p>Load a game file, then press Start Game. Use the player toolbar for pause, fullscreen, and save states.</p></div></div>
+<div class="player-head"><strong id="game-name">Choose your classic</strong><div class="actions"><button type="button" id="fullscreen" hidden>Fullscreen</button><button type="button" id="retry" hidden>Retry</button><button type="button" id="stop" hidden>Close game</button></div></div>
+<div id="screen"><div id="empty"><span aria-hidden="true">🎮</span><h2>Ready, player one?</h2><p>Choose Sonic or another SEGA classic above. Use the game’s controller menu to view its controls.</p></div></div>
 </div>
+<p><a id="provider-link" target="_blank" rel="noopener noreferrer" hidden>Open this game on RetroGames.cc ↗</a></p>
 <div class="tips">
 <section><h2>Keyboard &amp; controller</h2><p>Click the game to focus. Use the arrow keys to move and Enter to start. Open the controller menu to see or change button mappings.</p></section>
 <section><h2>Phone &amp; tablet</h2><p>Touch controls appear on supported devices. Turn your phone sideways for a wider view, or use fullscreen from the player toolbar.</p></section>
-<section><h2>Your game files</h2><p>The selected file is read on this device. Original Sonic game files are needed to play those titles. Save states can be exported and loaded from the toolbar.</p></section>
+<section><h2>Your game files</h2><p>The file option reads your selected cartridge on this device. Embedded games run in the RetroGames.cc player. Use its toolbar for available save and control settings.</p></section>
 </div>
-<p><small>Powered by <a href="https://emulatorjs.org/" target="_blank" rel="noopener noreferrer">EmulatorJS</a>.</small></p>
+<p><small>Cartridge player powered by <a href="https://emulatorjs.org/" target="_blank" rel="noopener noreferrer">EmulatorJS</a>.</small></p>
 </main>
 <script>
 const get = id => document.getElementById(id);
 const fileInput = get('file'), system = get('system'), screen = get('screen');
 const empty = get('empty'), status = get('status'), close = get('stop'), retry = get('retry');
 const consoles = {md:'segaMD',gen:'segaMD',bin:'segaMD',smd:'segaMD',sms:'segaMS',gg:'segaGG'};
+const fullscreen = get('fullscreen'), providerLink = get('provider-link'), picker = get('game-picker');
+const library = [
+  ['Sonic the Hedgehog', 'Genesis · 1991', '30299-sonic-the-hedgehog-usa-europe'],
+  ['Sonic the Hedgehog 2', 'Genesis · 1992', '17236-sonic-the-hedgehog-2-world-rev-a'],
+  ['Sonic the Hedgehog 3', 'Genesis · 1994', '30349-sonic-the-hedgehog-3-usa'],
+  ['Sonic & Knuckles + Sonic 2', 'Genesis · Knuckles edition', '28553-sonic-knuckles-sonic-the-hedgehog-2-world'],
+  ['Sonic Spinball', 'Genesis · Pinball', '29865-sonic-spinball-usa'],
+  ['Sonic Chaos', 'Game Gear · 1993', '31349-sonic-chaos-usa-europe'],
+  ['Flicky', 'Genesis · Platformer', '29743-flicky-usa-europe'],
+  ['Gunstar Heroes', 'Genesis · Action', '28309-gunstar-heroes-europe']
+];
 let frame, game, timer, session = 0;
 
 function closeGame() {
   session++;
   clearTimeout(timer);
   frame?.remove();
+  if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
   frame = undefined;
   empty.hidden = false;
-  close.hidden = retry.hidden = true;
+  close.hidden = retry.hidden = fullscreen.hidden = providerLink.hidden = true;
+  picker.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', 'false'));
   get('game-name').textContent = 'Ready for a game';
 }
 
@@ -89,14 +119,29 @@ function launch() {
   closeGame();
   const current = session;
   frame = document.createElement('iframe');
-  frame.title = game.file.name + ' — SEGA game player';
-  frame.allow = 'autoplay; fullscreen; gamepad';
+  const embedded = Boolean(game.embed);
+  frame.title = (embedded ? game.name : game.file.name) + ' — SEGA game player';
+  frame.allow = 'autoplay; fullscreen; gamepad; cross-origin-isolated';
   frame.setAttribute('allowfullscreen', '');
-  frame.src = '/sega-runner.html';
+  if (embedded) {
+    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads');
+    frame.src = game.embed;
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.addEventListener('load', () => {
+      if (current !== session) return;
+      clearTimeout(timer);
+      status.textContent = game.name + ' player loaded. Press Play Now inside the game to start.';
+      retry.hidden = false;
+    });
+    providerLink.href = game.embed;
+    providerLink.hidden = false;
+  } else {
+    frame.src = '/sega-runner.html';
+  }
   screen.append(frame);
   empty.hidden = true;
-  close.hidden = false;
-  get('game-name').textContent = game.file.name;
+  close.hidden = fullscreen.hidden = false;
+  get('game-name').textContent = embedded ? game.name : game.file.name;
   status.textContent = 'Loading the player…';
   timer = setTimeout(() => {
     if (current !== session) return;
@@ -149,11 +194,41 @@ window.addEventListener('message', async event => {
   }
 });
 
-retry.addEventListener('click', launch);
+library.forEach(([name, info, id]) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.setAttribute('aria-pressed', 'false');
+  const title = document.createElement('strong');
+  title.textContent = name;
+  const detail = document.createElement('small');
+  detail.textContent = info + ' · Play →';
+  button.append(title, detail);
+  button.addEventListener('click', () => {
+    game = {name, embed:'https://www.retrogames.cc/embed/' + id + '.html'};
+    launch();
+    button.setAttribute('aria-pressed', 'true');
+    get('player').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',block:'start'});
+  });
+  picker.append(button);
+});
+fullscreen.addEventListener('click', async () => {
+  try {
+    await get('player').requestFullscreen();
+  } catch {
+    status.textContent = 'Use the fullscreen control inside the game player.';
+  }
+});
+retry.addEventListener('click', () => {
+  launch();
+  if (game.embed) {
+    const index = library.findIndex(entry => game.embed.endsWith(entry[2] + '.html'));
+    picker.children[index]?.setAttribute('aria-pressed','true');
+  }
+});
 close.addEventListener('click', () => {
   closeGame();
   game = undefined;
-  status.textContent = 'Game closed. Choose a game file to play.';
+  status.textContent = 'Game closed. Choose another game above.';
 });
 window.addEventListener('pagehide', closeGame);
 </script>

@@ -1,5 +1,5 @@
 const cachePrefix = 'zohans-world-';
-const cacheName = cachePrefix + 'v11';
+const cacheName = cachePrefix + 'v12';
 const pages = new Map([
   ['/', '/'],
   ['/index.html', '/'],
