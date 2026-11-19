@@ -5,8 +5,8 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "theme_color": "#0b1737",
-  "background_color": "#0b1737",
+  "theme_color": "#fff9ed",
+  "background_color": "#fff9ed",
   "icons": [
     { "src": "/icons/zohan-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icons/zohan-512.png", "sizes": "512x512", "type": "image/png" }

@@ -1,0 +1,275 @@
+:root {
+  color-scheme: light;
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --text: "DM Sans", system-ui, sans-serif;
+  --ink: #28234b;
+  --muted: #615a7b;
+  --night: #fff9ed;
+  --panel: #ffffff;
+  --line: #dcd2ea;
+  --gold: #ffda65;
+  --amber: #ffda65;
+  --bright: #176c87;
+  --mint: #166975;
+  --coral: #e34369;
+  font-family: var(--text);
+  color: var(--ink);
+  background: #fff9ed;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  font: 400 1rem/1.6 var(--text);
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 96% 4%, #eadfff 0, transparent 36%),
+    radial-gradient(ellipse at 0 34%, #d9f3ed 0, transparent 28%),
+    #fff9ed;
+}
+h1, h2, h3, .site-logo, .sega-art strong, .game-picker strong {
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+h1 {font-size: clamp(2.5rem, 7vw, 5.5rem); line-height: 1.02; color: var(--ink)}
+h2 {line-height: 1.12; color: var(--ink)}
+h3 {line-height: 1.2}
+a {color: #5d3699}
+p, main > p, .intro, .game-back {color: var(--muted)}
+button, input, select, .upload {font-family: var(--text)}
+button, .upload, .download, .action-link {transition: transform .16s ease, box-shadow .16s ease, background .16s ease}
+button:not(:disabled):hover, .action-link:hover, .upload:hover {transform: translateY(-2px)}
+button:disabled {cursor: default}
+:focus-visible, .upload:focus-within {outline: 3px solid #4d42b0; outline-offset: 4px}
+.site-head {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #fffcf5;
+  border: 0;
+  border-bottom: 2px solid #eee5db;
+}
+.site-head .site-inner {
+  width: min(1200px, calc(100% - 40px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 20px 0;
+  margin: auto;
+}
+.site-logo {display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 1.4rem; line-height: 1.1; text-decoration: none}
+.site-logo span {
+  display: block;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 2px solid #2c2853;
+  border-radius: 15px;
+  background: #b8e7ed url('/icons/zohan-192.png') center / cover no-repeat;
+  box-shadow: 3px 3px 0 #2c2853;
+  font-size: 0;
+}
+.site-nav {display: flex; flex-wrap: wrap; gap: 5px}
+.site-head .site-nav a {color: #51456e; padding: 8px 13px; border-radius: 999px; text-decoration: none; font-size: .92rem; font-weight: 800}
+.site-head .site-nav a:hover {background: #eee2fb; color: #4c2885}
+.site-head .site-nav a[aria-current="page"] {background: #6b48af; color: #fff; box-shadow: 0 3px 0 #49317e}
+.site-foot {background: #f0e5ff; border-top: 2px solid #d9c7ee; color: #51456e; text-align: center; padding: 28px 20px; margin-top: 32px}
+.site-foot .site-logo {font-size: 1.2rem}
+main {padding-top: 34px}
+main > p {max-width: 70ch}
+.game-shortcuts {display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; font-size: .9rem; font-weight: 800}
+.action-link, button.primary, #play, #start, .download, .actions #open {
+  border: 2px solid #30274f;
+  border-radius: 13px;
+  color: #2e244b;
+  background: #ffda65;
+  box-shadow: 3px 4px 0 #30274f;
+  font-weight: 800;
+  text-decoration: none;
+}
+.action-link:hover, button.primary:hover, #play:hover, #start:hover {background: #ffe69a; box-shadow: 2px 2px 0 #30274f}
+.action-link {padding: 11px 18px}
+input:not([type="range"]):not([type="checkbox"]):not([type="file"]), select {
+  color: #30274f;
+  border: 2px solid #cec1df;
+  background: #fffdfa;
+  border-radius: 11px;
+}
+input[type="range"], input[type="checkbox"] {accent-color: #7654b2}
+.home-hero {
+  width: min(1200px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: clamp(26px, 5vw, 68px);
+  min-height: 430px;
+  border: 2px solid #372b55;
+  border-radius: 35px;
+  box-shadow: 7px 9px 0 #d8c4ed;
+  background:
+    radial-gradient(circle at 77% 21%, #fff7c3 0 12%, transparent 12.3%),
+    linear-gradient(120deg, #f9d3e5, #e6dcff 59%, #bce9f1);
+}
+.home-hero h1 {font-size: clamp(3.5rem, 8vw, 6.6rem); line-height: .99; max-width: 8ch}
+.home-hero h1 span {color: #6a419f}
+.hero-copy p {color: #544467; max-width: 35ch; font-size: 1.13rem}
+.hero-art {filter: drop-shadow(0 14px 5px #7b5f9b26)}
+.home-section {padding-top: 56px}
+.home-section h2 {font-size: clamp(2rem, 4vw, 3rem)}
+.world-links {grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px}
+.world-links a {
+  padding: 24px;
+  border: 2px solid #44345b;
+  border-top: 2px solid #44345b;
+  border-radius: 22px;
+  color: #30274f;
+  box-shadow: 4px 5px 0 #44345b;
+  background: #ffe49a;
+}
+.world-links a:nth-child(3n+2) {background: #d8cef6}
+.world-links a:nth-child(3n) {background: #bcebe1}
+.world-links a:nth-child(4) {background: #ffc8d6}
+.world-links a:hover {background: #ffeebc; transform: translateY(-3px)}
+.world-links span {font-size: 2rem; color: #634c9b}
+.world-links strong {font: 800 1.45rem/1.1 var(--display); letter-spacing: -.035em}
+.world-links small {color: #514766}
+.home-dance details {background: #fff3c9; border: 2px solid #d9b975; border-radius: 20px}
+.home-dance summary {color: #3e3155}
+.home-dance summary span {background: #ffda65; color: #3e3155}
+.home-dance summary::after {color: #715196}
+.dance-stage {background: radial-gradient(ellipse, #f7e0fb, #decef8)}
+.album-heading {border-color: #d8c9e3; gap: 20px}
+.album-collection h3 {color: #5c3991; font-size: 1.8rem}
+.album-jump a {color: #4d346c; border: 2px solid #d7c4e6; background: #fff}
+.album-jump a:hover {background: #eee1fa}
+.album .card {background: #fff; border: 2px solid #d9c5e7; border-radius: 20px; box-shadow: 0 5px 0 #e8daef}
+.album .card span {color: #443354; font-weight: 800}
+.album .card:hover {border-color: #9069bb; box-shadow: 0 7px 0 #e1cce8}
+dialog[aria-labelledby="caption"] {background: #fff9ee; color: #332449; border: 2px solid #6b4e8c}
+dialog .controls button {background: #e6d3f5; color: #332449}
+#album-position {color: #695078}
+.arcade-feature {
+  border: 2px solid #715695;
+  border-radius: 25px;
+  box-shadow: 5px 6px 0 #ddc7ec;
+  min-height: 240px;
+}
+.arcade-feature h2 {color: #fff8e8}
+.arcade-feature p {color: #fff1fb}
+.arcade-feature .action-link {background: #ffda65}
+.balloon-feature {background-image:
+  radial-gradient(ellipse 32px 40px at 84% 32%,#fff0af,#ee75a3 73%,transparent 77%),
+  radial-gradient(ellipse 37px 46px at 73% 61%,#d1feff,#4dbbe7 73%,transparent 77%),
+  radial-gradient(ellipse 26px 33px at 91% 72%,#ffc8fb,#a878f5 73%,transparent 77%),
+  linear-gradient(115deg,#63419a 25%,#bc79a8)}
+.sega-classics {padding: 26px; border: 2px solid #9ccfc9; border-radius: 25px; background: #e3f5ec}
+.sega-classics details {margin-top: 22px}
+.sega-classics summary {font-weight: 800; cursor: pointer; color: #2e6670}
+.sega-classics .sega-grid {margin-top: 18px}
+.sega-card {background: #fff; border-color: #b9c9d4; border-radius: 18px}
+.sega-art {border-color: #b9c9d4; color: #fff}
+.sega-art strong {font-size: 1.9rem; text-shadow: none}
+.sega-copy h3 {font-size: 1.4rem}
+.sega-copy p {color: #615a7b}
+.sega-copy small {color: #83511f}
+.sega-copy a {color: #4e389b}
+.game-tabs button, .filters button {color: #5b4671; border: 2px solid #d7c5e5; background: #fff; border-radius: 12px}
+.game-tabs button[aria-pressed="true"], .filters button[aria-pressed="true"] {background: #7654b2; border-color: #7654b2; color: #fff; box-shadow: 0 3px 0 #50357c}
+body.page-games main section[aria-labelledby="title"] {background: #fff; border: 2px solid #d5c4e4; border-radius: 22px; color: #33264c}
+body.page-games main section[aria-labelledby="title"] p {color: #615a7b}
+#moves button {background: #d9cdf4; color: #463360; border: 1px solid #b69dd7}
+.profile {background: #fff; border: 2px solid #d9c8e5; border-radius: 22px; box-shadow: 0 5px 0 #eadff0}
+.profile-copy h2 {font-size: 1.45rem; letter-spacing: -.03em}
+.profile-copy p {color: #615a7b}
+.profile-copy p:first-child {color: #875125}
+.profile .art-credit {color: #6a4a99}
+.character-search input {background: #fff}
+#count {color: #6c5a7c}
+.booth-controls {background: #fff; border: 2px solid #d3bce4; border-radius: 24px; box-shadow: 5px 6px 0 #ecdef5}
+.booth-controls h2 {color: #45335b}
+.frame {border: 8px solid #fff; border-radius: 26px; box-shadow: 0 7px 0 #c4a8dd}
+.actions button, .sticker-picker button, .mask-picker button {background: #ede2fa; color: #54346e; border: 1px solid #c8b3dd; border-radius: 12px}
+.sticker-picker button:hover, .mask-picker button:hover {background: #e4cef5}
+.mask-picker button[aria-pressed="true"] {background: #7450b0; color: #fff}
+#mask-status, #sticker-help, #status {color: #615071}
+#sticker-tools {border-color: #dfceeb}
+#sticker-tools legend {font-family: var(--display)}
+.game-back {color: #6c4a97}
+h1 em {color: #a43e79; font-style: normal}
+.garage-bar, .race {background: #fff; border: 2px solid #c1b1df; border-radius: 22px}
+.garage-bar {box-shadow: 0 4px 0 #e0ccec}
+.race .hud {background: #e8d8fb; color: #513667}
+.race .controls {background: #f5eafe; color: #513667}
+.race .controls button, .garage-bar button {color: #3c3158; background: #ffdf88; border: 1px solid #cfaf6b}
+.cast li {color: #644a81; background: #f0e2fb; border-color: #d2bbe7}
+.stat, .scoreboard > div {background: #fff; border: 2px solid #d7c4e6; border-radius: 14px; color: #483254}
+.stat strong, .scoreboard strong {color: #51366d}
+.stat span {color: #75637e}
+.scoreboard .time {background: #ffe7a6; color: #483254}
+.sound, #pause, #end-round, #sound, .room-bar button, .player-head button {
+  background: #eee2fa; color: #54346e; border: 1px solid #c4afd8; border-radius: 11px;
+}
+#sound[aria-pressed="true"] {background: #b7e9dc; color: #245c59}
+.panel {background: #fffcf6f5; border: 2px solid #b79acb; border-radius: 20px; box-shadow: 0 8px 0 #3e234326; color: #392848}
+.panel h2 {color: #593875}
+.panel p {color: #6c5278}
+.panel button {background: #eadcf8; color: #4d3268; border-color: #baa1d1}
+.mode-picker button {background: #f0e8fa; color: #614475; border-color: #c1a9d7}
+.mode-picker button[aria-pressed="true"] {background: #7954af; color: #fff; border-color: #7954af}
+.arena {border: 3px solid #a889ca; border-radius: 23px; box-shadow: 0 9px 0 #dcc9ed}
+.help, .help strong {color: #675177}
+#effect {background: #f0e3ff; border-color: #bfa3d7; color: #5d377c}
+#countdown {font-family: var(--display); color: #6b409a}
+#round-clock, .round-meter {background: #e1d2ee}
+#round-clock::-webkit-progress-bar, .round-meter::-webkit-progress-bar {background: #e1d2ee}
+#round-clock::-webkit-progress-value, .round-meter::-webkit-progress-value {background: linear-gradient(90deg,#ce75c1,#6bbaae)}
+#round-clock::-moz-progress-bar, .round-meter::-moz-progress-bar {background: linear-gradient(90deg,#ce75c1,#6bbaae)}
+#room-code {background: #fff; color: #3e2a57}
+.room-bar strong {color: #7547a6}
+.match-head p {color: #715579}
+.match-head strong {color: #8a4376}
+.photo {background: #f2e7fa; border-color: #ab8cc9; color: #775885}
+.upload {background: #ffd983; color: #4c375a; border-color: #cdb071}
+.setup {background: #f0e4ff; border: 2px solid #c4a6dc; border-radius: 22px}
+.provider {color: #69587b}
+summary {color: #675182}
+.game-picker button {border: 2px solid #6c5796; border-radius: 19px; color: #fff; box-shadow: 0 4px 0 #b9a0d0}
+.game-picker button strong {letter-spacing: -.03em}
+.game-picker button[aria-pressed="true"] {border-color: #37234c; outline: 3px solid #efb949; outline-offset: 1px; box-shadow: 0 4px 0 #bc9456}
+.game-picker small {color: #f2eaff}
+.player {border: 2px solid #8d70ad; border-radius: 23px; box-shadow: 0 7px 0 #d8c6e8}
+.player-head {background: #e9dafa; color: #4e3468}
+.player-head strong {font-family: var(--display); font-weight: 800}
+#empty {background: radial-gradient(ellipse,#e8dcff,#c8e9f0); color: #4e3468}
+#empty h2, #empty p {color: #4e3468}
+.tips section {background: #fff; border: 2px solid #dccbe8; border-radius: 19px}
+.tips h2 {font-size: 1.4rem}
+small {color: #776084}
+@media (max-width: 800px) {
+  .site-head .site-inner {justify-content: center; padding: 16px 0; gap: 14px}
+  .site-nav {justify-content: center}
+  .world-links {grid-template-columns: repeat(2,minmax(0,1fr))}
+}
+@media (max-width: 520px) {
+  h1 {font-size: 2.6rem}
+  .site-head .site-inner {width: calc(100% - 24px)}
+  .site-logo {font-size: 1.28rem}
+  .site-nav {gap: 3px}
+  .site-head .site-nav a {font-size: .78rem; padding: 7px 9px}
+  .home-hero {width: calc(100% - 30px); border-radius: 24px; box-shadow: 4px 6px 0 #d8c4ed}
+  .home-hero h1 {font-size: 3.9rem}
+  .home-section {padding-top: 38px}
+  .world-links {gap: 12px}
+  .world-links a {padding: 17px; border-radius: 17px; box-shadow: 3px 4px 0 #44345b}
+  .world-links strong {font-size: 1.15rem}
+  .world-links small {font-size: .86rem}
+  .sega-classics {padding: 18px}
+  .album .grid {gap: 10px}
+  .arena {border-radius: 16px}
+  .title {align-items: center}
+  .title .sound {font-size: .8rem; flex-shrink: 0}
+}
+@media (prefers-reduced-motion: reduce) {
+  button, .upload, .download, .action-link {transition: none}
+}

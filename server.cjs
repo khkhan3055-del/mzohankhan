@@ -19,6 +19,7 @@ const photos = new Map(
     .map(name => ['/photos/' + name, readFileSync(join(__dirname, 'photos', name))])
 );
 const appFiles = new Map([
+  ['/colorful.css', 'text/css; charset=utf-8'],
   ['/manifest.webmanifest', 'application/manifest+json'],
   ['/pwa.js', 'text/javascript; charset=utf-8'],
   ['/sw.js', 'text/javascript; charset=utf-8'],

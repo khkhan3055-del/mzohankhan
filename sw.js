@@ -1,5 +1,5 @@
 const cachePrefix = 'zohans-world-';
-const cacheName = cachePrefix + 'v12';
+const cacheName = cachePrefix + 'v13';
 const pages = new Map([
   ['/', '/'],
   ['/index.html', '/'],
@@ -23,7 +23,8 @@ const assets = new Set([
   '/manifest.webmanifest',
   '/icons/zohan-192.png',
   '/icons/zohan-512.png',
-  '/pwa.js'
+  '/pwa.js',
+  '/colorful.css'
 ]);
 
 self.addEventListener('install', event => {
