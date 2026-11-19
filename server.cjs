@@ -10,7 +10,9 @@ const runner = readFileSync(join(__dirname, 'runner.html'));
 const characters = readFileSync(join(__dirname, 'characters.html'));
 const balloonPop = readFileSync(join(__dirname, 'balloon-pop.html'));
 const balloonDuel = readFileSync(join(__dirname, 'balloon-duel.html'));
-const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner], ['/characters.html', characters], ['/balloon-pop.html', balloonPop], ['/balloon-duel.html', balloonDuel]]);
+const segaPlayer = readFileSync(join(__dirname, 'sega-player.html'));
+const segaRunner = readFileSync(join(__dirname, 'sega-runner.html'));
+const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner], ['/characters.html', characters], ['/balloon-pop.html', balloonPop], ['/balloon-duel.html', balloonDuel], ['/sega-player.html', segaPlayer], ['/sega-runner.html', segaRunner]]);
 const photos = new Map(
   readdirSync(join(__dirname, 'photos'))
     .filter(name => name.endsWith('.jpg'))

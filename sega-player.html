@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1737">
+<title>SEGA Player | Zohan’s World</title>
+<link rel="icon" href="/icons/zohan-192.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/zohan-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Sans:wght@400;600;700;800&display=swap">
+<script src="/pwa.js" defer></script>
+<style>
+:root{color-scheme:dark;font:16px/1.5 "DM Sans",system-ui,sans-serif;background:#0a1734;color:#f8f5ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#164e8e,transparent 60%);min-height:100vh}
+[hidden]{display:none!important}
+header,main{width:min(1060px,calc(100% - 32px));margin:auto}
+header{padding:18px 0;border-bottom:1px solid #4a6b9e}
+a{color:#bdeaff}header a{text-decoration:none;font-weight:800}
+main{padding:25px 0 40px}
+h1,h2{font-family:"Barlow Condensed",system-ui,sans-serif;line-height:1;margin:0}
+h1{font-size:clamp(3rem,10vw,6rem)}h2{font-size:1.8rem}
+p{color:#d9e7ff}
+.setup{display:flex;flex-wrap:wrap;gap:12px;align-items:end;padding:18px;background:#142b50;border:1px solid #6389c0;border-radius:14px}
+label{display:grid;gap:5px;font-weight:700}
+select,button,input{font:inherit}
+select,button,.upload{border:1px solid #7a9cc8;padding:10px 14px;border-radius:9px;background:#203e68;color:inherit}
+button,.upload{cursor:pointer;font-weight:800}
+.upload{display:inline-flex;align-items:center;background:#ffe097;color:#1c2d4a;border-color:#ffe097}
+.upload input{position:absolute;width:1px;height:1px;opacity:0}
+:focus-visible,.upload:focus-within{outline:3px solid #90e5ff;outline-offset:4px}
+#status{min-height:1.5em}
+.player{background:#070e20;border:1px solid #6389c0;border-radius:15px;overflow:hidden}
+.player-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;padding:12px 15px;background:#172b4f}
+#game-name{overflow-wrap:anywhere;max-width:100%}
+.actions{display:flex;flex-wrap:wrap;gap:7px}
+#screen{position:relative;min-height:300px;aspect-ratio:4/3;max-height:78vh}
+iframe{display:block;width:100%;height:100%;border:0}
+#empty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:12px;padding:20px;background:radial-gradient(ellipse,#1b3972,#0c1733)}
+#empty span{display:block;font-size:3rem}
+#empty p{max-width:42ch;margin:0}
+.tips{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.tips section{background:#132749;padding:15px;border:1px solid #426493;border-radius:12px}
+.tips p{margin-bottom:0}
+small{color:#adc4e6}
+@media(max-width:680px){.tips{grid-template-columns:1fr}#screen{aspect-ratio:4/5;min-height:420px;max-height:none}.setup>label{width:100%}}
+</style>
+</head>
+<body>
+<header><a href="/games.html">← Zohan’s Arcade</a></header>
+<main>
+<h1>SEGA Player</h1>
+<p>Play a cartridge game here. Choose your own game file for Mega Drive / Genesis, Master System, or Game Gear.</p>
+<div class="setup">
+<label for="system">Console<select id="system"><option value="auto">Detect from file</option><option value="segaMD">Mega Drive / Genesis</option><option value="segaMS">Master System</option><option value="segaGG">Game Gear</option></select></label>
+<label class="upload">Choose game file<input id="file" type="file" accept=".md,.gen,.bin,.smd,.sms,.gg"></label>
+<small>.md · .gen · .bin · .smd · .sms · .gg — up to 32 MB</small>
+</div>
+<p id="status" role="status">Choose a game file to begin. Internet access is needed to load the player.</p>
+<div class="player" id="player">
+<div class="player-head"><strong id="game-name">Ready for a game</strong><div class="actions"><button type="button" id="retry" hidden>Retry</button><button type="button" id="stop" hidden>Close game</button></div></div>
+<div id="screen"><div id="empty"><span aria-hidden="true">🎮</span><h2>Your classic arcade</h2><p>Load a game file, then press Start Game. Use the player toolbar for pause, fullscreen, and save states.</p></div></div>
+</div>
+<div class="tips">
+<section><h2>Keyboard &amp; controller</h2><p>Click the game to focus. Use the arrow keys to move and Enter to start. Open the controller menu to see or change button mappings.</p></section>
+<section><h2>Phone &amp; tablet</h2><p>Touch controls appear on supported devices. Turn your phone sideways for a wider view, or use fullscreen from the player toolbar.</p></section>
+<section><h2>Your game files</h2><p>The selected file is read on this device. Original Sonic game files are needed to play those titles. Save states can be exported and loaded from the toolbar.</p></section>
+</div>
+<p><small>Powered by <a href="https://emulatorjs.org/" target="_blank" rel="noopener noreferrer">EmulatorJS</a>.</small></p>
+</main>
+<script>
+const get = id => document.getElementById(id);
+const fileInput = get('file'), system = get('system'), screen = get('screen');
+const empty = get('empty'), status = get('status'), close = get('stop'), retry = get('retry');
+const consoles = {md:'segaMD',gen:'segaMD',bin:'segaMD',smd:'segaMD',sms:'segaMS',gg:'segaGG'};
+let frame, game, timer, session = 0;
+
+function closeGame() {
+  session++;
+  clearTimeout(timer);
+  frame?.remove();
+  frame = undefined;
+  empty.hidden = false;
+  close.hidden = retry.hidden = true;
+  get('game-name').textContent = 'Ready for a game';
+}
+
+function launch() {
+  closeGame();
+  const current = session;
+  frame = document.createElement('iframe');
+  frame.title = game.file.name + ' — SEGA game player';
+  frame.allow = 'autoplay; fullscreen; gamepad';
+  frame.setAttribute('allowfullscreen', '');
+  frame.src = '/sega-runner.html';
+  screen.append(frame);
+  empty.hidden = true;
+  close.hidden = false;
+  get('game-name').textContent = game.file.name;
+  status.textContent = 'Loading the player…';
+  timer = setTimeout(() => {
+    if (current !== session) return;
+    status.textContent = 'Loading is taking longer than expected. Check your connection or press Retry.';
+    retry.hidden = false;
+  }, 45000);
+}
+
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files[0];
+  fileInput.value = '';
+  if (!file) return;
+  const extension = file.name.split('.').pop().toLowerCase();
+  if (!consoles[extension] || !file.size || file.size > 32 * 1024 * 1024) {
+    status.textContent = 'Choose a supported cartridge file up to 32 MB.';
+    return;
+  }
+  game = {file, core:system.value === 'auto' ? consoles[extension] : system.value};
+  launch();
+});
+
+window.addEventListener('message', async event => {
+  if (!frame || event.source !== frame.contentWindow || event.origin !== location.origin) return;
+  const current = session;
+  if (event.data?.type === 'sega-ready') {
+    try {
+      const bytes = await game.file.arrayBuffer();
+      if (current !== session) return;
+      frame.contentWindow.postMessage({type:'sega-game', bytes, core:game.core, name:game.file.name}, location.origin, [bytes]);
+    } catch {
+      status.textContent = 'The game file could not be read. Choose it again or try another file.';
+      clearTimeout(timer);
+      retry.hidden = false;
+    }
+  }
+  if (event.data?.type === 'sega-loaded') {
+    clearTimeout(timer);
+    retry.hidden = true;
+    status.textContent = 'Player ready. Press Start Game inside the player.';
+  }
+  if (event.data?.type === 'sega-playing') {
+    clearTimeout(timer);
+    retry.hidden = true;
+    status.textContent = 'Playing ' + game.file.name + '. Use the player toolbar for controls and saves.';
+  }
+  if (event.data?.type === 'sega-error') {
+    clearTimeout(timer);
+    status.textContent = 'The player could not load this game. Check your connection, console selection, and game file.';
+    retry.hidden = false;
+  }
+});
+
+retry.addEventListener('click', launch);
+close.addEventListener('click', () => {
+  closeGame();
+  game = undefined;
+  status.textContent = 'Game closed. Choose a game file to play.';
+});
+window.addEventListener('pagehide', closeGame);
+</script>
+</body>
+</html>
