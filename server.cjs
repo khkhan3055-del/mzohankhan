@@ -3,16 +3,18 @@ const { readFileSync, readdirSync } = require('node:fs');
 const { join } = require('node:path');
 const { handleDuel } = require('./balloon-duel.cjs');
 
-const home = readFileSync(join(__dirname, 'index.html'));
+const zooLink = `<a href="/zoo-animals.html" aria-label="Explore Zoo Animals" style="position:fixed;bottom:18px;right:18px;z-index:9999;padding:14px 20px;background:#087e6e;color:white;border:3px solid #fff;border-radius:50px;box-shadow:0 5px 20px #0004;font:800 16px system-ui,sans-serif;text-decoration:none">🦁 Zoo Animals</a>`;
+const home = Buffer.from(readFileSync(join(__dirname, 'index.html'),'utf8').replace(/<\/body>/i, zooLink + '</body>'));
 const games = readFileSync(join(__dirname, 'games.html'));
 const booth = readFileSync(join(__dirname, 'photo-booth.html'));
 const runner = readFileSync(join(__dirname, 'runner.html'));
 const characters = readFileSync(join(__dirname, 'characters.html'));
+const zooAnimals = readFileSync(join(__dirname, 'zoo-animals.html'));
 const balloonPop = readFileSync(join(__dirname, 'balloon-pop.html'));
 const balloonDuel = readFileSync(join(__dirname, 'balloon-duel.html'));
 const segaPlayer = readFileSync(join(__dirname, 'sega-player.html'));
 const segaRunner = readFileSync(join(__dirname, 'sega-runner.html'));
-const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner], ['/characters.html', characters], ['/balloon-pop.html', balloonPop], ['/balloon-duel.html', balloonDuel], ['/sega-player.html', segaPlayer], ['/sega-runner.html', segaRunner]]);
+const pages = new Map([['/', home], ['/index.html', home], ['/games.html', games], ['/photo-booth.html', booth], ['/runner.html', runner], ['/characters.html', characters], ['/zoo-animals.html', zooAnimals], ['/balloon-pop.html', balloonPop], ['/balloon-duel.html', balloonDuel], ['/sega-player.html', segaPlayer], ['/sega-runner.html', segaRunner]]);
 const photos = new Map(
   readdirSync(join(__dirname, 'photos'))
     .filter(name => name.endsWith('.jpg'))
