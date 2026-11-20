@@ -3,7 +3,7 @@ const { readFileSync, readdirSync } = require('node:fs');
 const { join } = require('node:path');
 const { handleDuel } = require('./balloon-duel.cjs');
 
-const zooLink = `<a href="/zoo-animals.html" aria-label="Explore Zoo Animals" style="position:fixed;bottom:18px;right:18px;z-index:9999;padding:14px 20px;background:#087e6e;color:white;border:3px solid #fff;border-radius:50px;box-shadow:0 5px 20px #0004;font:800 16px system-ui,sans-serif;text-decoration:none">🦁 Zoo Animals</a>`;
+const zooLink = `<a href="/zoo-animals.html" aria-label="Explore Farm and Wild Animals" style="position:fixed;bottom:18px;right:18px;z-index:9999;padding:14px 20px;background:#087e6e;color:white;border:3px solid #fff;border-radius:50px;box-shadow:0 5px 20px #0004;font:800 16px system-ui,sans-serif;text-decoration:none">🐾 Animals</a>`;
 const home = Buffer.from(readFileSync(join(__dirname, 'index.html'),'utf8').replace(/<\/body>/i, zooLink + '</body>'));
 const games = readFileSync(join(__dirname, 'games.html'));
 const booth = readFileSync(join(__dirname, 'photo-booth.html'));
