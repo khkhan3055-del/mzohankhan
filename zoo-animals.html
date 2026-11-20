@@ -14,7 +14,7 @@ for(const animal of farmAnimals) animal.category='farm';
 animals.push(...farmAnimals);
 let selectedCategory='all';
 document.querySelectorAll('[data-category]').forEach(button=>button.addEventListener('click',()=>{selectedCategory=button.dataset.category;document.querySelectorAll('[data-category]').forEach(b=>{const selected=b===button;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected))});stopSound();render()}));
-const grid=document.getElementById('animals')},search=document.getElementById('search'),habitat=document.getElementById('habitat'),count=document.getElementById('count');
+const grid=document.getElementById('animals'),search=document.getElementById('search'),habitat=document.getElementById('habitat'),count=document.getElementById('count');
 [...new Set(animals.map(a=>a.habitat))].sort().forEach(h=>{const o=document.createElement('option');o.value=h;o.textContent=h;habitat.appendChild(o)});
 let activeAudio=null,activeButton=null;
 function stopSound(){if(activeAudio){activeAudio.pause();activeAudio.currentTime=0;activeAudio=null;}if(activeButton){activeButton.textContent='🔊 Play real sound';activeButton.classList.remove('playing');activeButton=null;}}
